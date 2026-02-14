@@ -23,7 +23,10 @@ body {
 
 body {
   min-height: 100vh;
+  position: relative;
   min-height: 100dvh;
+  background: linear-gradient(135deg, #2d2d44 0%, #1f1f2e 100%);
+  z-index: -1;
 }
 
 #root {

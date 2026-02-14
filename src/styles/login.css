@@ -215,6 +215,11 @@
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
+.toggle-password i {
+  font-size: 20px;
+  line-height: 1;
+}
+
 .toggle-password:hover:not(:disabled) {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.06);

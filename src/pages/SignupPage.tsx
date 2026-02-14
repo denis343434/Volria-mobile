@@ -3,39 +3,6 @@ import iconUrl from "../assets/img/icon.svg";
 import "../styles/login.css";
 import { validateSignupForm } from "../utils/validation";
 
-function EyeIcon({ off }: { off?: boolean }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M12 5C6.5 5 2.2 9 1 12c1.2 3 5.5 7 11 7s9.8-4 11-7c-1.2-3-5.5-7-11-7Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      {off && (
-        <path
-          d="M4 4l16 16"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      )}
-    </svg>
-  );
-}
-
 export const SignupPage: FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -178,7 +145,7 @@ export const SignupPage: FC = () => {
                 disabled={isLoading}
                 aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
               >
-                <EyeIcon off={!showPassword} />
+                <i className={showPassword ? "ri-eye-line" : "ri-eye-off-line"} aria-hidden="true" />
               </button>
             </div>
             {errors.password && <p className="error-message">{errors.password}</p>}
@@ -209,7 +176,7 @@ export const SignupPage: FC = () => {
                 disabled={isLoading}
                 aria-label={showConfirm ? "Скрыть пароль" : "Показать пароль"}
               >
-                <EyeIcon off={!showConfirm} />
+                <i className={showConfirm ? "ri-eye-line" : "ri-eye-off-line"} aria-hidden="true" />
               </button>
             </div>
             {errors.confirmPassword && (
@@ -242,3 +209,4 @@ export const SignupPage: FC = () => {
     </div>
   );
 };
+
