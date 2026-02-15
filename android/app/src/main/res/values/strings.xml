@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">veloria</string>
+    <string name="title_activity_main">veloria</string>
+    <string name="package_name">com.veloria.app</string>
+    <string name="custom_url_scheme">com.veloria.app</string>
+</resources>

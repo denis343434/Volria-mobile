@@ -1,0 +1,57 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.google.gms:google-services:4.4.2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Some transitive dependencies (notably older coroutines) can bring in
+// kotlin-stdlib-jdk7/jdk8 at an older version, which then conflicts with a newer
+// kotlin-stdlib and fails the Android build with "Duplicate class ..." errors.
+subprojects {
+    // Force a consistent Java language level *after* each Android subproject is evaluated.
+    // Some generated/third-party Gradle scripts set Java 21, but this build is configured
+    // to run on JDK 17 (see android/gradle.properties), which then fails with:
+    // "error: invalid source release: 21".
+    afterEvaluate { prj ->
+        if (prj.plugins.hasPlugin('com.android.application') || prj.plugins.hasPlugin('com.android.library')) {
+            def androidExt = prj.extensions.findByName('android')
+            if (androidExt != null && androidExt.hasProperty('compileOptions')) {
+                androidExt.compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+                androidExt.compileOptions.targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                details.useVersion '1.8.22'
+                details.because 'Align Kotlin artifacts to avoid duplicate stdlib classes'
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

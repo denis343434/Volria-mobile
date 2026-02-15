@@ -52,7 +52,7 @@ type QuickForm = {
 };
 
 export const ClientsPage: FC = () => {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [loyalty, setLoyalty] = useState<Loyalty>("all");
   const [clients, setClients] = useState<ClientRecord[]>(() => loadClients());
@@ -128,7 +128,8 @@ export const ClientsPage: FC = () => {
         phone: quick.phone.trim() || undefined,
         email: quick.email.trim() || undefined,
         notes: quick.notes.trim() || undefined,
-        loyalty: LOYALTY_VALUES[lang].UNSET,
+        // Store a canonical (RU) value; UI translation is handled via i18n (t(...)).
+        loyalty: LOYALTY_VALUES.ru.UNSET,
       });
       setClients(loadClients());
       setQuickOpen(false);
