@@ -2,7 +2,16 @@ export type CalendarEventRecord = {
   id: string;
   date: string; // yyyy-mm-dd
   time: string; // HH:mm
-  title: string;
+  // Legacy display title (older versions saved only this field).
+  title?: string;
+  // New fields for "who booked" UX.
+  clientName?: string;
+  phone?: string;
+  email?: string;
+  master?: string;
+  status?: string;
+  note?: string;
+  services?: string[];
 };
 
 const STORAGE_KEY = "veloria_events_v1";
@@ -34,8 +43,29 @@ export function loadEvents(): CalendarEventRecord[] {
     if (typeof o.id !== "string") continue;
     if (typeof o.date !== "string") continue;
     if (typeof o.time !== "string") continue;
-    if (typeof o.title !== "string") continue;
-    out.push({ id: o.id, date: o.date, time: o.time, title: o.title });
+    const title = typeof o.title === "string" ? o.title : undefined;
+    const clientName = typeof o.clientName === "string" ? o.clientName : undefined;
+    const phone = typeof o.phone === "string" ? o.phone : undefined;
+    const email = typeof o.email === "string" ? o.email : undefined;
+    const master = typeof o.master === "string" ? o.master : undefined;
+    const status = typeof o.status === "string" ? o.status : undefined;
+    const note = typeof o.note === "string" ? o.note : undefined;
+    const services = Array.isArray(o.services) ? o.services.filter((s) => typeof s === "string") : undefined;
+
+    // Backward compatibility: older records had only {title}.
+    out.push({
+      id: o.id,
+      date: o.date,
+      time: o.time,
+      title,
+      clientName,
+      phone,
+      email,
+      master,
+      status,
+      note,
+      services: services?.length ? services : undefined,
+    });
   }
   return out;
 }
@@ -51,4 +81,3 @@ export function addEvent(input: Omit<CalendarEventRecord, "id">): CalendarEventR
   saveEvents(next);
   return ev;
 }
-

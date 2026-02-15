@@ -26,7 +26,7 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(233, 233, 246, 0.7);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
   display: inline-flex;
   align-items: center;
@@ -66,9 +66,9 @@
 }
 
 .cf-label {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(233, 233, 246, 0.42);
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .cf-input,
@@ -87,6 +87,8 @@
   height: 40px;
   padding: 0 12px;
 }
+
+/* Keep default padding; specific controls (select/date) add extra right padding below. */
 
 .cf-area {
   padding: 10px 12px;
@@ -109,6 +111,8 @@
 .cf-select {
   appearance: none;
   padding-right: 40px;
+  /* Hint UA to render native select UI in dark colors where supported. */
+  color-scheme: dark;
 }
 
 .cf-select-wrap i,
@@ -119,14 +123,212 @@
   pointer-events: none;
 }
 
+/* Style the dropdown list (works in some browsers; others use OS-native UI). */
+.cf-select option,
+.cf-select optgroup {
+  background: rgb(46 49 74);
+  color: rgba(233, 233, 246, 0.92);
+}
+
+.cf-select option:disabled {
+  color: rgba(233, 233, 246, 0.45);
+}
+
 .cf-date-wrap .cf-input {
   padding-right: 40px;
 }
 
+/* Date picker sheet */
+.cf-dp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px 12px calc(12px + env(safe-area-inset-bottom));
+}
+
+.cf-dp-sheet {
+  width: min(420px, 100%);
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(18, 18, 28, 0.92);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+  transform: translateY(12px);
+  animation: cfDpUp 160ms ease-out forwards;
+}
+
+@keyframes cfDpUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+.cf-dp-head {
+  padding: 12px 12px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(120% 120% at 0% 0%, rgba(255, 0, 255, 0.22) 0%, rgba(255, 255, 255, 0.03) 55%);
+}
+
+.cf-dp-head-left {
+  min-width: 0;
+}
+
+.cf-dp-kicker {
+  font-size: 13px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  color: rgba(233, 233, 246, 0.5);
+}
+
+.cf-dp-title {
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(233, 233, 246, 0.92);
+}
+
+.cf-dp-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(233, 233, 246, 0.85);
+  display: grid;
+  place-items: center;
+}
+
+.cf-dp-close i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.cf-dp-nav {
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cf-dp-nav-btn {
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(233, 233, 246, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cf-dp-nav-btn:nth-child(2) {
+  justify-content: center;
+}
+
+.cf-dp-nav-btn i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.cf-dp-dow {
+  padding: 10px 12px 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cf-dp-dow-cell {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(233, 233, 246, 0.45);
+}
+
+.cf-dp-grid {
+  padding: 8px 12px 12px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cf-dp-day {
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(233, 233, 246, 0.9);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cf-dp-day.is-outside {
+  opacity: 0.45;
+}
+
+.cf-dp-day.is-today {
+  border-color: rgba(120, 200, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(120, 200, 255, 0.12);
+}
+
+.cf-dp-day.is-selected {
+  border-color: rgba(255, 0, 255, 0.6);
+  background: rgba(255, 0, 255, 0.14);
+  color: rgba(255, 230, 255, 0.98);
+  box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.18);
+}
+
+.cf-dp-foot {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cf-dp-foot-btn {
+  height: 40px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.cf-dp-foot-btn.is-muted {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(233, 233, 246, 0.6);
+}
+
+.cf-dp-foot-btn.is-primary {
+  border: none;
+  color: white;
+  background: linear-gradient(135deg, #ff00ff 0%, #ff4dff 100%);
+  box-shadow: 0 14px 26px rgba(255, 0, 255, 0.18);
+}
+
 .cf-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(233, 233, 246, 0.4);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -192,4 +394,3 @@
     grid-template-columns: 1fr;
   }
 }
-

@@ -1,7 +1,8 @@
-﻿import { type FC } from "react";
+﻿import { type FC, useMemo } from "react";
 import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
 import { MessagesBell } from "../components/MessagesBell";
+import { useI18n } from "../i18n";
 import "../styles/dashboard.css";
 
 type Metric = {
@@ -10,36 +11,77 @@ type Metric = {
   hint: string;
 };
 
+// Функция для форматирования даты с учетом языка
+const formatDayWithWeekday = (date: Date, lang: string, includeYear: boolean = false) => {
+  const options: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'short',
+    ...(includeYear && { year: 'numeric' })
+  };
+  
+  const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+  const dateStr = date.toLocaleDateString(locale, options);
+  
+  // Добавляем сокращенный день недели
+  const weekdayOptions: Intl.DateTimeFormatOptions = { weekday: 'short' };
+  const weekday = date.toLocaleDateString(locale, weekdayOptions);
+  
+  return `${dateStr}, ${weekday}`;
+};
+
+const formatDay = (date: Date, lang: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'short'
+  };
+  const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+  return date.toLocaleDateString(locale, options);
+};
+
 export const DasboardPage: FC = () => {
+  const { t, lang } = useI18n();
+  
+  // Генерируем даты для демо-данных
+  const today = new Date();
+  const dates = useMemo(() => {
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      result.push(d);
+    }
+    return result;
+  }, []);
+
   const metrics: Metric[] = [
-    { label: "Выручка", value: "0 ₽", hint: "Выручка против прогноза" },
-    { label: "Клиенты сегодня", value: "0", hint: "Записано клиентов" },
-    { label: "Средний чек", value: "0 ₽", hint: "Чистая выручка за визит" },
-    { label: "Повторные визиты", value: "0.0%", hint: "Доля клиентов, вернувшихся" },
+    { label: t("dashboard.metrics.revenue"), value: "0 ₽", hint: t("dashboard.metrics.revenueHint") },
+    { label: t("dashboard.metrics.clientsToday"), value: "0", hint: t("dashboard.metrics.clientsTodayHint") },
+    { label: t("dashboard.metrics.avgCheck"), value: "0 ₽", hint: t("dashboard.metrics.avgCheckHint") },
+    { label: t("dashboard.metrics.repeat"), value: "0.0%", hint: t("dashboard.metrics.repeatHint") },
   ];
 
-  const marginByDay = [
-    { day: "8 фев, вск", minutes: 0, rub: 0 },
-    { day: "9 фев, пнд", minutes: 0, rub: 0 },
-    { day: "10 фев, втр", minutes: 0, rub: 0 },
-    { day: "11 фев, срд", minutes: 0, rub: 0 },
-    { day: "12 фев, чтв", minutes: 0, rub: 0 },
-    { day: "13 фев, птн", minutes: 0, rub: 0 },
-  ];
+  const marginByDay = useMemo(() => 
+    dates.map(date => ({
+      date,
+      day: formatDayWithWeekday(date, lang),
+      minutes: 0,
+      rub: 0
+    })), [dates, lang]
+  );
 
-  const revenueByDay = [
-    { day: "14 фев", rub: 0 },
-    { day: "13 фев", rub: 0 },
-    { day: "12 фев", rub: 0 },
-    { day: "11 фев", rub: 0 },
-    { day: "10 фев", rub: 0 },
-    { day: "9 фев", rub: 0 },
-    { day: "8 фев", rub: 0 },
-  ];
+  const revenueByDay = useMemo(() => 
+    dates.map(date => ({
+      date,
+      day: formatDay(date, lang),
+      rub: 0
+    })), [dates, lang]
+  );
+
+  const bestDay = marginByDay.length > 0 ? marginByDay[0] : null;
 
   return (
     <div className="dash-shell">
-      <aside className="dash-sidebar" aria-label="Навигация">
+      <aside className="dash-sidebar" aria-label={t("a11y.navigation")}>
         <div className="dash-brand" title="Veloria">
           <img src={iconUrl} className="dash-brand-icon" alt="Veloria" />
         </div>
@@ -50,22 +92,22 @@ export const DasboardPage: FC = () => {
               <i className="ri-home-5-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/calendar" title="Календарь">
+          <a className="dash-nav-item" href="/calendar" title={t("nav.calendar")}>
             <span className="dash-nav-icon">
               <i className="ri-calendar-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/clients" title="Клиенты">
+          <a className="dash-nav-item" href="/clients" title={t("nav.clients")}>
             <span className="dash-nav-icon">
               <i className="ri-user-3-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/services" title="Услуги">
+          <a className="dash-nav-item" href="/services" title={t("nav.services")}>
             <span className="dash-nav-icon">
               <i className="ri-service-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/settings" title="Настройки">
+          <a className="dash-nav-item" href="/settings" title={t("nav.settings")}>
             <span className="dash-nav-icon">
               <i className="ri-settings-3-line" aria-hidden="true" />
             </span>
@@ -76,7 +118,7 @@ export const DasboardPage: FC = () => {
           <a
             className="dash-nav-item"
             href="/"
-            title="Выйти"
+            title={t("profile.logout")}
             onClick={() => {
               localStorage.removeItem("authToken");
               sessionStorage.removeItem("authToken");
@@ -90,7 +132,7 @@ export const DasboardPage: FC = () => {
       </aside>
 
       <main className="dash-main">
-        <header className="dash-topbar" aria-label="Панель">
+        <header className="dash-topbar" aria-label={t("a11y.topbar")}>
           <div className="dash-topbar-left">
             <span className="dash-mini">
               <i className="ri-global-line" aria-hidden="true" />
@@ -111,10 +153,10 @@ export const DasboardPage: FC = () => {
         <section className="dash-content">
           <div className="dash-pagehead">
             <div>
-              <div className="dash-kicker">ГЛАВНЫЙ ЭКРАН</div>
-              <h1 className="dash-title">Фокус на сегодня</h1>
+              <div className="dash-kicker">{t("dashboard.kicker").toUpperCase()}</div>
+              <h1 className="dash-title">{t("dashboard.title")}</h1>
             </div>
-            <div className="dash-updated">Обновлено 0 секунд назад</div>
+            <div className="dash-updated">{t("dashboard.updated", { seconds: 0 })}</div>
           </div>
 
           <div className="dash-grid">
@@ -122,23 +164,23 @@ export const DasboardPage: FC = () => {
               <div className="dash-card">
                 <div className="dash-card-head">
                   <div>
-                    <div className="dash-card-title">Расписание на сегодня</div>
-                    <div className="dash-card-subtitle">Следите за ключевыми визитами и сигналами от ИИ</div>
+                    <div className="dash-card-title">{t("dashboard.schedule.title")}</div>
+                    <div className="dash-card-subtitle">{t("dashboard.schedule.subtitle")}</div>
                   </div>
-                  <button className="dash-primary" type="button">Быстрая Запись</button>
+                  <button className="dash-primary" type="button">{t("dashboard.schedule.quickBooking")}</button>
                 </div>
 
                 <div className="dash-card-body">
                   <div className="dash-empty">
-                    Сегодня нет запланированных визитов, самое время заняться привлечением клиентов.
+                    {t("dashboard.schedule.empty")}
                   </div>
                 </div>
               </div>
 
               <div className="dash-card">
                 <div className="dash-card-head">
-                  <div className="dash-card-title">Сегодня в цифрах</div>
-                  <div className="dash-pill">Прогноз прибыли — 0 ₽</div>
+                  <div className="dash-card-title">{t("dashboard.numbers.title")}</div>
+                  <div className="dash-pill">{t("dashboard.numbers.forecast", { amount: "0 ₽" })}</div>
                 </div>
 
                 <div className="dash-metrics">
@@ -158,31 +200,31 @@ export const DasboardPage: FC = () => {
               <div className="dash-card">
                 <div className="dash-card-head">
                   <div>
-                    <div className="dash-card-title">Советы ИИ-ассистента</div>
-                    <div className="dash-card-subtitle">Что можно сделать прямо сейчас</div>
+                    <div className="dash-card-title">{t("dashboard.ai.title")}</div>
+                    <div className="dash-card-subtitle">{t("dashboard.ai.subtitle")}</div>
                   </div>
                   <div className="dash-head-actions">
-                    <span className="dash-tag">В ПРИОРИТЕТЕ</span>
-                    <button className="dash-gear" type="button" title="Настроить">
+                    <span className="dash-tag">{t("dashboard.ai.priority").toUpperCase()}</span>
+                    <button className="dash-gear" type="button" title={t("dashboard.ai.configure")}>
                       <i className="ri-settings-3-line" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
 
                 <div className="dash-assistant">
-                  <div className="dash-assistant-item">
-                    <div className="dash-assistant-top">
-                      <div className="dash-assistant-title">Проверьте базу клиентов</div>
-                      <div className="dash-assistant-badge">МОЖНО ПОЗЖЕ</div>
+                    <div className="dash-assistant-item">
+                      <div className="dash-assistant-top">
+                      <div className="dash-assistant-title">{t("dashboard.ai.item1.title")}</div>
+                      <div className="dash-assistant-badge">{t("dashboard.ai.item1.badge").toUpperCase()}</div>
+                      </div>
+                      <div className="dash-assistant-text">
+                      {t("dashboard.ai.item1.text")}
+                      </div>
+                      <div className="dash-assistant-actions">
+                      <button className="dash-outline" type="button">{t("dashboard.ai.item1.action1")}</button>
+                      <button className="dash-muted" type="button" disabled>{t("dashboard.ai.item1.action2")}</button>
+                      </div>
                     </div>
-                    <div className="dash-assistant-text">
-                      Нет срочных задач. Напомните о себе клиентам, которые давно не приходили, и обновите предложения.
-                    </div>
-                    <div className="dash-assistant-actions">
-                      <button className="dash-outline" type="button">Запустить Цепочку Напоминаний</button>
-                      <button className="dash-muted" type="button" disabled>Обновить Акции</button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -191,15 +233,15 @@ export const DasboardPage: FC = () => {
           <div className="dash-section">
             <div className="dash-section-head">
               <div>
-                <div className="dash-kicker">АНАЛИТИКА РОСТА</div>
-                <div className="dash-section-title">Финансы и эффективность</div>
+                <div className="dash-kicker">{t("dashboard.growth.kicker").toUpperCase()}</div>
+                <div className="dash-section-title">{t("dashboard.growth.title")}</div>
               </div>
               <button
                 className="dash-ghost"
                 type="button"
                 onClick={() => { window.location.href = "/analytics"; }}
               >
-                Открыть Полную Аналитику
+                {t("dashboard.growth.openAnalytics")}
               </button>
             </div>
 
@@ -208,20 +250,24 @@ export const DasboardPage: FC = () => {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <div>
-                      <div className="dash-card-title">Маржа/час</div>
+                      <div className="dash-card-title">{t("dashboard.margin.title")}</div>
                       <div className="dash-card-subtitle">
-                        В какие дни работа приносит максимум
+                        {t("dashboard.margin.subtitle")}
                       </div>
                     </div>
-                    <div className="dash-chip dash-chip--good">Лучший день: 8 фев, вск — 0 ₽</div>
+                    {bestDay && (
+                      <div className="dash-chip dash-chip--good">
+                        {t("dashboard.margin.bestDay", { day: bestDay.day, amount: `${bestDay.rub} ₽` })}
+                      </div>
+                    )}
                   </div>
 
                   <div className="dash-list">
                     {marginByDay.map((row) => (
-                      <div className="dash-row" key={row.day}>
+                      <div className="dash-row" key={row.date.toISOString()}>
                         <div className="dash-row-top">
                           <div className="dash-row-title">{row.day}</div>
-                          <div className="dash-row-right">{row.minutes} мин</div>
+                          <div className="dash-row-right">{row.minutes} {t("common.minutes")}</div>
                         </div>
                         <div className="dash-bar" aria-hidden="true">
                           <div className="dash-bar-fill" style={{ width: "0%" }} />
@@ -240,31 +286,31 @@ export const DasboardPage: FC = () => {
                 <div className="dash-card">
                   <div className="dash-card-head">
                     <div>
-                      <div className="dash-card-title">Топ-3 маржинальных услуг</div>
-                      <div className="dash-card-subtitle">Пока нет данных по услугам</div>
+                      <div className="dash-card-title">{t("dashboard.topServices.title")}</div>
+                      <div className="dash-card-subtitle">{t("dashboard.topServices.subtitle")}</div>
                     </div>
                   </div>
                   <div className="dash-card-body">
                     <div className="dash-note">
-                      Когда появятся новые продажи, мы подсветим самые выгодные услуги.
+                      {t("dashboard.topServices.note")}
                     </div>
                   </div>
                 </div>
 
                 <div className="dash-card">
                   <div className="dash-card-head">
-                    <div className="dash-card-title">Лучшие клиенты</div>
+                    <div className="dash-card-title">{t("dashboard.bestClients.title")}</div>
                   </div>
                   <div className="dash-card-body">
                     <div className="dash-client">
                       <div className="dash-client-rank">1</div>
                       <div className="dash-client-meta">
                         <div className="dash-client-line">LTV: 0 ₽</div>
-                        <div className="dash-client-line dash-client-line--muted">Последний визит: —</div>
+                        <div className="dash-client-line dash-client-line--muted">{t("dashboard.bestClients.lastVisit")}</div>
                       </div>
                     </div>
                     <div className="dash-card-subtitle" style={{ marginTop: 10 }}>
-                      Отмечаем тех, кто чаще рекомендует и возвращается.
+                      {t("dashboard.bestClients.note")}
                     </div>
                   </div>
                 </div>
@@ -275,20 +321,20 @@ export const DasboardPage: FC = () => {
           <div className="dash-card">
             <div className="dash-card-head">
               <div>
-                <div className="dash-card-title">Выручка за период</div>
-                <div className="dash-card-subtitle">Сравнение с прошлым периодом</div>
+                <div className="dash-card-title">{t("dashboard.revenuePeriod.title")}</div>
+                <div className="dash-card-subtitle">{t("dashboard.revenuePeriod.subtitle")}</div>
               </div>
-              <div className="dash-pill">Нет данных для сравнения</div>
+              <div className="dash-pill">{t("dashboard.revenuePeriod.noCompare")}</div>
             </div>
 
             <div className="dash-rev-list">
               {revenueByDay.map((r) => (
-                <div className="dash-rev-item" key={r.day}>
+                <div className="dash-rev-item" key={r.date.toISOString()}>
                   <div className="dash-rev-top">
                     <div className="dash-rev-date">{r.day}</div>
                     <div className="dash-rev-money">{r.rub} ₽</div>
                   </div>
-                  <div className="dash-rev-sub">Нет данных для сравнения</div>
+                  <div className="dash-rev-sub">{t("dashboard.revenuePeriod.noCompare")}</div>
                 </div>
               ))}
             </div>
@@ -298,10 +344,3 @@ export const DasboardPage: FC = () => {
     </div>
   );
 };
-
-
-
-
-
-
-

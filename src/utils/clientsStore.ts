@@ -86,9 +86,25 @@ export function addClient(input: Omit<ClientRecord, "id">): ClientRecord {
   return client;
 }
 
+export function getClientById(id: string): ClientRecord | undefined {
+  return loadClients().find((c) => c.id === id);
+}
+
+export function updateClient(id: string, input: Omit<ClientRecord, "id">): ClientRecord | undefined {
+  const cur = loadClients();
+  let updated: ClientRecord | undefined;
+  const next = cur.map((c) => {
+    if (c.id !== id) return c;
+    updated = { id, ...input };
+    return updated;
+  });
+  if (!updated) return undefined;
+  saveClients(next);
+  return updated;
+}
+
 export function removeClient(id: string) {
   const cur = loadClients();
   const next = cur.filter((c) => c.id !== id);
   saveClients(next);
 }
-

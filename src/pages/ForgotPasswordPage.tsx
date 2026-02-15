@@ -2,11 +2,14 @@
 import iconUrl from "../assets/img/icon.svg";
 import "../styles/login.css";
 import { validateForgotPasswordForm } from "../utils/validation";
+import { useI18n, type I18nKey } from "../i18n";
+import { AuthLangSelect } from "../components/AuthLangSelect";
 
 export const ForgotPasswordPage: FC = () => {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"email", I18nKey>>>({});
   const [submitError, setSubmitError] = useState("");
   const [submitOk, setSubmitOk] = useState("");
 
@@ -28,11 +31,9 @@ export const ForgotPasswordPage: FC = () => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
-      setSubmitOk(
-        "Если этот email зарегистрирован, мы отправили ссылку для восстановления пароля.",
-      );
+      setSubmitOk(t("auth.forgot.ok.sent"));
     } catch {
-      setSubmitError("Не удалось отправить письмо. Попробуйте еще раз.");
+      setSubmitError(t("auth.forgot.err.generic"));
     } finally {
       setIsLoading(false);
     }
@@ -43,14 +44,16 @@ export const ForgotPasswordPage: FC = () => {
       <div className="login-wrapper">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-header">
+            <AuthLangSelect disabled={isLoading} />
+
             <div className="brand-row">
               <img className="brand-icon" src={iconUrl} alt="Veloria" />
               <div className="brand-name">Veloria</div>
             </div>
 
-            <h2 className="welcome-title">Восстановление пароля</h2>
+            <h2 className="welcome-title">{t("auth.forgot.title")}</h2>
             <p className="login-subtitle">
-              Введите email, и мы отправим ссылку для сброса пароля
+              {t("auth.forgot.subtitle")}
             </p>
           </div>
 
@@ -84,36 +87,36 @@ export const ForgotPasswordPage: FC = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                if (errors.email) setErrors({ ...errors, email: "" });
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
               }}
               disabled={isLoading}
               autoComplete="email"
               inputMode="email"
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <p className="error-message">{t(errors.email)}</p>}
           </div>
 
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="spinner" aria-hidden="true"></span>
-                Отправляем...
+                {t("auth.forgot.loading")}
               </>
             ) : (
-              "Отправить ссылку"
+              t("auth.forgot.submit")
             )}
           </button>
 
           <div className="form-footer">
             <p>
-              Вспомнили пароль? <a href="/" className="signup-link">Войти</a>
+              {t("auth.forgot.remembered")} <a href="/" className="signup-link">{t("auth.signup.signIn")}</a>
             </p>
           </div>
         </form>
       </div>
 
       <div className="login-footer">
-        <p className="footer-text">© 2026 CRM Mobile. All rights reserved.</p>
+        <p className="footer-text">© 2026 CRM Mobile. {t("auth.footer.rights")}</p>
       </div>
     </div>
   );

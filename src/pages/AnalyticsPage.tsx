@@ -1,13 +1,17 @@
 ﻿import { useMemo, useState, type FC } from "react";
 import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
+import { DatePickerField } from "../components/DatePickerField";
 import { MessagesBell } from "../components/MessagesBell";
+import { useI18n } from "../i18n";
 import "../styles/dashboard.css";
 import "../styles/analytics.css";
+import "../styles/clientForm.css";
 
 type Grouping = "day" | "week" | "month";
 
 type MetricCard = {
+  id: "revenue" | "avgCheck" | "bookingsSales" | "retention";
   title: string;
   value: string;
   hintLeft: string;
@@ -50,6 +54,9 @@ function downloadCsv(filename: string, rows: string[][]) {
 }
 
 export const AnalyticsPage: FC = () => {
+  const { lang, t } = useI18n();
+  const locale = lang === "ru" ? "ru-RU" : "en-US";
+
   const [dateFrom, setDateFrom] = useState<string>(() => addDaysISO(todayISO(), -29));
   const [dateTo, setDateTo] = useState<string>(() => todayISO());
   const [grouping, setGrouping] = useState<Grouping>("day");
@@ -58,35 +65,39 @@ export const AnalyticsPage: FC = () => {
   const cards = useMemo<MetricCard[]>(
     () => [
       {
-        title: "Выручка",
+        id: "revenue",
+        title: t("analytics.metric.revenue"),
         value: "0 ₽",
-        hintLeft: "без изменений",
-        hintRight: "к прошлому периоду",
+        hintLeft: t("analytics.hint.noChanges"),
+        hintRight: t("analytics.hint.vsPrev"),
         icon: "ri-money-ruble-circle-line",
       },
       {
-        title: "Средний чек",
+        id: "avgCheck",
+        title: t("analytics.metric.avgCheck"),
         value: "0 ₽",
-        hintLeft: "без изменений",
-        hintRight: "к прошлому периоду",
+        hintLeft: t("analytics.hint.noChanges"),
+        hintRight: t("analytics.hint.vsPrev"),
         icon: "ri-shopping-bag-3-line",
       },
       {
-        title: "Записи и продажи",
+        id: "bookingsSales",
+        title: t("analytics.metric.bookingsSales"),
         value: "0",
-        hintLeft: "без изменений",
-        hintRight: "к прошлому периоду",
+        hintLeft: t("analytics.hint.noChanges"),
+        hintRight: t("analytics.hint.vsPrev"),
         icon: "ri-calendar-check-line",
       },
       {
-        title: "Удержание клиентов",
+        id: "retention",
+        title: t("analytics.metric.retention"),
         value: "0%",
-        hintLeft: "Новые клиенты: 1",
+        hintLeft: t("analytics.hint.newClients", { count: 1 }),
         hintRight: "",
         icon: "ri-user-heart-line",
       },
     ],
-    [],
+    [t],
   );
 
   const apply = () => {
@@ -113,33 +124,33 @@ export const AnalyticsPage: FC = () => {
 
   return (
     <div className="dash-shell an-shell">
-      <aside className="dash-sidebar" aria-label="Навигация">
+      <aside className="dash-sidebar" aria-label={t("a11y.navigation")}>
         <div className="dash-brand" title="Veloria">
           <img src={iconUrl} className="dash-brand-icon" alt="Veloria" />
         </div>
 
         <nav className="dash-nav">
-          <a className="dash-nav-item" href="/dashboard" title="Главная">
+          <a className="dash-nav-item" href="/dashboard" title={t("nav.home")}>
             <span className="dash-nav-icon">
               <i className="ri-home-5-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/calendar" title="Календарь">
+          <a className="dash-nav-item" href="/calendar" title={t("nav.calendar")}>
             <span className="dash-nav-icon">
               <i className="ri-calendar-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/clients" title="Клиенты">
+          <a className="dash-nav-item" href="/clients" title={t("nav.clients")}>
             <span className="dash-nav-icon">
               <i className="ri-user-3-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/services" title="Услуги">
+          <a className="dash-nav-item" href="/services" title={t("nav.services")}>
             <span className="dash-nav-icon">
               <i className="ri-service-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/settings" title="Настройки">
+          <a className="dash-nav-item" href="/settings" title={t("nav.settings")}>
             <span className="dash-nav-icon">
               <i className="ri-settings-3-line" aria-hidden="true" />
             </span>
@@ -148,15 +159,15 @@ export const AnalyticsPage: FC = () => {
       </aside>
 
       <main className="dash-main">
-        <header className="dash-topbar" aria-label="Панель">
+        <header className="dash-topbar" aria-label={t("a11y.topbar")}>
           <div className="dash-topbar-left" />
           <div className="dash-topbar-right">
             <div className="dash-topbar-actions">
               <button className="an-btn an-btn--ghost" type="button" onClick={() => setLastUpdated(new Date())}>
-                <i className="ri-refresh-line" aria-hidden="true" /> Обновить
+                <i className="ri-refresh-line" aria-hidden="true" /> {t("common.refresh")}
               </button>
               <button className="an-btn an-btn--primary" type="button" onClick={exportExcel}>
-                <i className="ri-file-excel-2-line" aria-hidden="true" /> Экспорт В Excel
+                <i className="ri-file-excel-2-line" aria-hidden="true" /> {t("common.exportExcel")}
               </button>
               <MessagesBell />
             </div>
@@ -167,45 +178,32 @@ export const AnalyticsPage: FC = () => {
         <section className="dash-content">
           <div className="an-head">
             <div>
-              <h1 className="an-title">Аналитика и инсайты</h1>
-              <div className="an-sub">Следите за ключевыми метриками, прогнозами и рекомендациями ИИ.</div>
-              <div className="an-upd">Обновлено: {lastUpdated.toLocaleString("ru-RU")}</div>
+              <h1 className="an-title">{t("analytics.title")}</h1>
+              <div className="an-sub">{t("analytics.subtitle")}</div>
+              <div className="an-upd">{t("analytics.updated", { ts: lastUpdated.toLocaleString(locale) })}</div>
             </div>
           </div>
 
           <div className="dash-card an-filters">
             <div className="an-filters-grid">
-              <label className="an-field">
-                <div className="an-label">Дата начала</div>
-                <div className="an-input-wrap">
-                  <input className="an-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-                  <i className="ri-calendar-line" aria-hidden="true" />
-                </div>
-              </label>
+              <DatePickerField label={t("analytics.dateFrom")} valueYmd={dateFrom} onChangeYmd={setDateFrom} />
+              <DatePickerField label={t("analytics.dateTo")} valueYmd={dateTo} onChangeYmd={setDateTo} />
 
               <label className="an-field">
-                <div className="an-label">Дата окончания</div>
-                <div className="an-input-wrap">
-                  <input className="an-input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-                  <i className="ri-calendar-line" aria-hidden="true" />
-                </div>
-              </label>
-
-              <label className="an-field">
-                <div className="an-label">Группировка</div>
+                <div className="an-label">{t("analytics.grouping")}</div>
                 <div className="an-input-wrap">
                   <select className="an-input" value={grouping} onChange={(e) => setGrouping(e.target.value as Grouping)}>
-                    <option value="day">По дням</option>
-                    <option value="week">По неделям</option>
-                    <option value="month">По месяцам</option>
+                    <option value="day">{t("analytics.grouping.day")}</option>
+                    <option value="week">{t("analytics.grouping.week")}</option>
+                    <option value="month">{t("analytics.grouping.month")}</option>
                   </select>
                   <i className="ri-arrow-down-s-line" aria-hidden="true" />
                 </div>
               </label>
 
               <div className="an-filter-actions">
-                <button className="an-btn an-btn--primary" type="button" onClick={apply}>Применить</button>
-                <button className="an-btn an-btn--muted" type="button" onClick={reset}>Сбросить</button>
+                <button className="an-btn an-btn--primary" type="button" onClick={apply}>{t("common.apply")}</button>
+                <button className="an-btn an-btn--muted" type="button" onClick={reset}>{t("common.reset")}</button>
               </div>
             </div>
           </div>
@@ -224,22 +222,22 @@ export const AnalyticsPage: FC = () => {
                   <span>{c.hintLeft}</span>
                   {c.hintRight && <span>{c.hintRight}</span>}
                 </div>
-                {c.title === "Выручка" && (
+                {c.id === "revenue" && (
                   <div className="an-card-subgrid">
-                    <div className="an-mini">Услуги <span>0 ₽</span></div>
-                    <div className="an-mini">Товары <span>0 ₽</span></div>
+                    <div className="an-mini">{t("analytics.revenue.services")} <span>0 ₽</span></div>
+                    <div className="an-mini">{t("analytics.revenue.goods")} <span>0 ₽</span></div>
                   </div>
                 )}
-                {c.title === "Средний чек" && (
+                {c.id === "avgCheck" && (
                   <div className="an-card-subgrid">
-                    <div className="an-mini">Прошлый период <span>0 ₽</span></div>
+                    <div className="an-mini">{t("analytics.avgCheck.prevPeriod")} <span>0 ₽</span></div>
                   </div>
                 )}
-                {c.title === "Записи и продажи" && (
-                  <div className="an-card-note">Учитываются подтвержденные встречи и оплаты за период.</div>
+                {c.id === "bookingsSales" && (
+                  <div className="an-card-note">{t("analytics.note.bookingsSales")}</div>
                 )}
-                {c.title === "Удержание клиентов" && (
-                  <div className="an-card-note">Посетили в период: 0 · Постоянные клиенты: 0</div>
+                {c.id === "retention" && (
+                  <div className="an-card-note">{t("analytics.note.retention", { visited: 0, regular: 0 })}</div>
                 )}
               </div>
             ))}
@@ -249,15 +247,15 @@ export const AnalyticsPage: FC = () => {
             <div className="dash-card an-panel">
               <div className="an-panel-head">
                 <div>
-                  <div className="dash-card-title">Динамика выручки</div>
-                  <div className="dash-card-subtitle">Текущий период: 0 ₽ · прошлый: 0 ₽</div>
+                  <div className="dash-card-title">{t("analytics.panel.revenueDynamics")}</div>
+                  <div className="dash-card-subtitle">{t("analytics.panel.periodCompare", { cur: "0 ₽", prev: "0 ₽" })}</div>
                 </div>
-                <button className="an-mini-btn" type="button" onClick={() => window.alert("Отчет пока не подключен.")}
-                >Смотреть Детальный Отчет</button>
+                <button className="an-mini-btn" type="button" onClick={() => window.alert(t("analytics.alert.reportNotReady"))}
+                >{t("analytics.panel.details")}</button>
               </div>
 
               <div className="an-chart">
-                <svg viewBox="0 0 640 220" role="img" aria-label="График (заглушка)">
+                <svg viewBox="0 0 640 220" role="img" aria-label={t("analytics.chart.stub")}>
                   <defs>
                     <linearGradient id="anLine" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0" stopColor="rgba(255,0,255,0.65)" />
@@ -297,24 +295,24 @@ export const AnalyticsPage: FC = () => {
                 </svg>
 
                 <div className="an-legend">
-                  <span><span className="an-swatch an-swatch--cur" /> Текущий период</span>
-                  <span><span className="an-swatch an-swatch--prev" /> Прошлый период</span>
+                  <span><span className="an-swatch an-swatch--cur" /> {t("analytics.legend.current")}</span>
+                  <span><span className="an-swatch an-swatch--prev" /> {t("analytics.legend.prev")}</span>
                 </div>
               </div>
 
               <div className="an-notes">
-                <div className="an-note"><i className="ri-information-line" aria-hidden="true" /> Общая выручка за период получила 0 ₽, из них на услугах — 0 ₽.</div>
-                <div className="an-note"><i className="ri-information-line" aria-hidden="true" /> Средний чек: динамика среднего чека составила 0%.</div>
+                <div className="an-note"><i className="ri-information-line" aria-hidden="true" /> {t("analytics.note.revenueTotal", { total: "0 ₽", services: "0 ₽" })}</div>
+                <div className="an-note"><i className="ri-information-line" aria-hidden="true" /> {t("analytics.note.avgCheckDyn", { pct: "0%" })}</div>
               </div>
             </div>
 
             <div className="dash-card an-panel">
               <div className="an-panel-head">
-                <div className="dash-card-title">Выручка по услугам</div>
-                <button className="an-mini-btn" type="button" onClick={() => window.alert("Отчет пока не подключен.")}
-                >Смотреть Детальный Отчет</button>
+                <div className="dash-card-title">{t("analytics.panel.revenueByServices")}</div>
+                <button className="an-mini-btn" type="button" onClick={() => window.alert(t("analytics.alert.reportNotReady"))}
+                >{t("analytics.panel.details")}</button>
               </div>
-              <div className="an-empty">Нет данных за выбранный период</div>
+              <div className="an-empty">{t("analytics.emptyPeriod")}</div>
             </div>
           </div>
         </section>

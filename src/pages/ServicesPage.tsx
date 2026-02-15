@@ -2,6 +2,7 @@
 import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
 import { MessagesBell } from "../components/MessagesBell";
+import { useI18n, type I18nKey } from "../i18n";
 import "../styles/dashboard.css";
 import "../styles/services.css";
 
@@ -38,6 +39,7 @@ function saveServices(items: Service[]) {
 }
 
 export const ServicesPage: FC = () => {
+  const { t } = useI18n();
   const [items, setItems] = useState<Service[]>(() => loadServices());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +49,7 @@ export const ServicesPage: FC = () => {
   const [priceRub, setPriceRub] = useState("0");
   const [description, setDescription] = useState("");
   const [active, setActive] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"name" | "durationMin" | "priceRub", I18nKey>>>({});
 
   const countActive = useMemo(() => items.filter((s) => s.active).length, [items]);
 
@@ -78,14 +80,14 @@ export const ServicesPage: FC = () => {
   };
 
   const validate = () => {
-    const e: Record<string, string> = {};
-    if (!name.trim()) e.name = "Введите название услуги";
+    const e: Partial<Record<"name" | "durationMin" | "priceRub", I18nKey>> = {};
+    if (!name.trim()) e.name = "services.err.nameRequired";
 
     const d = Number(durationMin);
-    if (!Number.isFinite(d) || d <= 0) e.durationMin = "Длительность должна быть больше 0";
+    if (!Number.isFinite(d) || d <= 0) e.durationMin = "services.err.durationInvalid";
 
     const p = Number(priceRub);
-    if (!Number.isFinite(p) || p < 0) e.priceRub = "Цена не может быть отрицательной";
+    if (!Number.isFinite(p) || p < 0) e.priceRub = "services.err.priceNegative";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -115,7 +117,7 @@ export const ServicesPage: FC = () => {
   };
 
   const remove = (id: string) => {
-    if (!window.confirm("Удалить услугу?") ) return;
+    if (!window.confirm(t("services.confirmDelete"))) return;
     const updated = items.filter((s) => s.id !== id);
     setItems(updated);
     saveServices(updated);
@@ -129,33 +131,33 @@ export const ServicesPage: FC = () => {
 
   return (
     <div className="dash-shell svc-shell">
-      <aside className="dash-sidebar" aria-label="Навигация">
+      <aside className="dash-sidebar" aria-label={t("a11y.navigation")}>
         <div className="dash-brand" title="Veloria">
           <img src={iconUrl} className="dash-brand-icon" alt="Veloria" />
         </div>
 
         <nav className="dash-nav">
-          <a className="dash-nav-item" href="/dashboard" title="Главная">
+          <a className="dash-nav-item" href="/dashboard" title={t("nav.home")}>
             <span className="dash-nav-icon">
               <i className="ri-home-5-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/calendar" title="Календарь">
+          <a className="dash-nav-item" href="/calendar" title={t("nav.calendar")}>
             <span className="dash-nav-icon">
               <i className="ri-calendar-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/clients" title="Клиенты">
+          <a className="dash-nav-item" href="/clients" title={t("nav.clients")}>
             <span className="dash-nav-icon">
               <i className="ri-user-3-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item is-active" href="/services" aria-current="page" title="Услуги">
+          <a className="dash-nav-item is-active" href="/services" aria-current="page" title={t("nav.services")}>
             <span className="dash-nav-icon">
               <i className="ri-service-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/settings" title="Настройки">
+          <a className="dash-nav-item" href="/settings" title={t("nav.settings")}>
             <span className="dash-nav-icon">
               <i className="ri-settings-3-line" aria-hidden="true" />
             </span>
@@ -164,7 +166,7 @@ export const ServicesPage: FC = () => {
       </aside>
 
       <main className="dash-main">
-        <header className="dash-topbar" aria-label="Панель">
+        <header className="dash-topbar" aria-label={t("a11y.topbar")}>
           <div className="dash-topbar-left" />
           <div className="dash-topbar-right">
             <div className="dash-topbar-actions">
@@ -177,22 +179,22 @@ export const ServicesPage: FC = () => {
         <section className="dash-content">
           <div className="svc-head">
             <div>
-              <h1 className="svc-title">Услуги</h1>
-              <div className="svc-sub">Создавайте услуги, задавайте цену и длительность.</div>
+              <h1 className="svc-title">{t("services.title")}</h1>
+              <div className="svc-sub">{t("services.subtitle")}</div>
             </div>
 
             <div className="svc-actions">
               <button type="button" className="svc-btn svc-btn--primary" onClick={openCreate}>
-                <i className="ri-add-line" aria-hidden="true" /> Добавить услугу
+                <i className="ri-add-line" aria-hidden="true" /> {t("services.add")}
               </button>
               <div className="svc-stats">
                 <div className="svc-stat">
+                  <div className="svc-stat-label">{t("services.total")}</div>
                   <div className="svc-stat-num">{items.length}</div>
-                  <div className="svc-stat-label">Всего</div>
                 </div>
                 <div className="svc-stat">
+                  <div className="svc-stat-label">{t("services.activeCount")}</div>
                   <div className="svc-stat-num">{countActive}</div>
-                  <div className="svc-stat-label">Активных</div>
                 </div>
               </div>
             </div>
@@ -201,7 +203,7 @@ export const ServicesPage: FC = () => {
           {isOpen && (
             <div className="dash-card svc-form-card">
               <div className="svc-form-head">
-                <div className="dash-card-title">{editingId ? "Редактировать услугу" : "Новая услуга"}</div>
+                <div className="dash-card-title">{editingId ? t("services.form.edit") : t("services.form.new")}</div>
                 <button
                   type="button"
                   className="svc-x"
@@ -209,7 +211,7 @@ export const ServicesPage: FC = () => {
                     setIsOpen(false);
                     resetForm();
                   }}
-                  title="Закрыть"
+                  title={t("common.close")}
                 >
                   <i className="ri-close-line" aria-hidden="true" />
                 </button>
@@ -217,47 +219,47 @@ export const ServicesPage: FC = () => {
 
               <form className="svc-form" onSubmit={submit}>
                 <label className="svc-field">
-                  <div className="svc-label">Название</div>
+                  <div className="svc-label">{t("services.field.name")}</div>
                   <input
                     className={`svc-input ${errors.name ? "is-error" : ""}`}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Например: Стрижка"
+                    placeholder={t("services.field.namePlaceholder")}
                   />
-                  {errors.name && <div className="svc-error">{errors.name}</div>}
+                  {errors.name && <div className="svc-error">{t(errors.name)}</div>}
                 </label>
 
                 <div className="svc-row">
                   <label className="svc-field">
-                    <div className="svc-label">Длительность (мин)</div>
+                    <div className="svc-label">{t("services.field.duration")}</div>
                     <input
                       className={`svc-input ${errors.durationMin ? "is-error" : ""}`}
                       value={durationMin}
                       onChange={(e) => setDurationMin(e.target.value)}
                       inputMode="numeric"
                     />
-                    {errors.durationMin && <div className="svc-error">{errors.durationMin}</div>}
+                    {errors.durationMin && <div className="svc-error">{t(errors.durationMin)}</div>}
                   </label>
 
                   <label className="svc-field">
-                    <div className="svc-label">Цена (₽)</div>
+                    <div className="svc-label">{t("services.field.price")}</div>
                     <input
                       className={`svc-input ${errors.priceRub ? "is-error" : ""}`}
                       value={priceRub}
                       onChange={(e) => setPriceRub(e.target.value)}
                       inputMode="numeric"
                     />
-                    {errors.priceRub && <div className="svc-error">{errors.priceRub}</div>}
+                    {errors.priceRub && <div className="svc-error">{t(errors.priceRub)}</div>}
                   </label>
                 </div>
 
                 <label className="svc-field">
-                  <div className="svc-label">Описание</div>
+                  <div className="svc-label">{t("services.field.description")}</div>
                   <textarea
                     className="svc-input svc-textarea"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Короткое описание услуги"
+                    placeholder={t("services.field.descriptionPlaceholder")}
                     rows={3}
                   />
                 </label>
@@ -266,14 +268,14 @@ export const ServicesPage: FC = () => {
                   <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
                   <span className="svc-toggle-ui" aria-hidden="true" />
                   <span className="svc-toggle-text">
-                    <span className="svc-toggle-title">Активна</span>
-                    <span className="svc-toggle-hint">Показывать услугу при записи</span>
+                    <span className="svc-toggle-title">{t("services.toggle.activeTitle")}</span>
+                    <span className="svc-toggle-hint">{t("services.toggle.activeHint")}</span>
                   </span>
                 </label>
 
                 <div className="svc-form-actions">
                   <button type="submit" className="svc-btn svc-btn--primary">
-                    <i className="ri-save-3-line" aria-hidden="true" /> Сохранить
+                    <i className="ri-save-3-line" aria-hidden="true" /> {t("common.save")}
                   </button>
                   <button
                     type="button"
@@ -283,7 +285,7 @@ export const ServicesPage: FC = () => {
                       resetForm();
                     }}
                   >
-                    Отмена
+                    {t("common.cancel")}
                   </button>
                 </div>
               </form>
@@ -292,7 +294,7 @@ export const ServicesPage: FC = () => {
 
           <div className="svc-list">
             {!items.length ? (
-              <div className="dash-note">Пока нет услуг. Нажмите "Добавить услугу".</div>
+              <div className="dash-note">{t("services.empty")}</div>
             ) : (
               items.map((s) => (
                 <div className="dash-card svc-item" key={s.id}>
@@ -300,8 +302,8 @@ export const ServicesPage: FC = () => {
                     <div>
                       <div className="svc-item-title">
                         {s.name}{" "}
-                        {!s.active && <span className="svc-badge svc-badge--muted">Отключена</span>}
-                        {s.active && <span className="svc-badge">Активна</span>}
+                        {!s.active && <span className="svc-badge svc-badge--muted">{t("services.badge.disabled")}</span>}
+                        {s.active && <span className="svc-badge">{t("services.badge.active")}</span>}
                       </div>
                       <div className="svc-item-sub">
                         <span>
@@ -314,13 +316,13 @@ export const ServicesPage: FC = () => {
                     </div>
 
                     <div className="svc-item-actions">
-                      <button type="button" className="svc-ico" title="Вкл/выкл" onClick={() => toggleActive(s.id)}>
+                      <button type="button" className="svc-ico" title={t("services.action.toggle")} onClick={() => toggleActive(s.id)}>
                         <i className={s.active ? "ri-toggle-fill" : "ri-toggle-line"} aria-hidden="true" />
                       </button>
-                      <button type="button" className="svc-ico" title="Редактировать" onClick={() => openEdit(s)}>
+                      <button type="button" className="svc-ico" title={t("common.edit")} onClick={() => openEdit(s)}>
                         <i className="ri-pencil-line" aria-hidden="true" />
                       </button>
-                      <button type="button" className="svc-ico svc-ico--danger" title="Удалить" onClick={() => remove(s.id)}>
+                      <button type="button" className="svc-ico svc-ico--danger" title={t("common.delete")} onClick={() => remove(s.id)}>
                         <i className="ri-delete-bin-6-line" aria-hidden="true" />
                       </button>
                     </div>
@@ -336,7 +338,3 @@ export const ServicesPage: FC = () => {
     </div>
   );
 };
-
-
-
-

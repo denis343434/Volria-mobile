@@ -2,8 +2,11 @@
 import iconUrl from "../assets/img/icon.svg";
 import "../styles/login.css";
 import { validateSignupForm } from "../utils/validation";
+import { useI18n, type I18nKey } from "../i18n";
+import { AuthLangSelect } from "../components/AuthLangSelect";
 
 export const SignupPage: FC = () => {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,7 +14,9 @@ export const SignupPage: FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<"name" | "email" | "password" | "confirmPassword", I18nKey>>
+  >({});
   const [submitError, setSubmitError] = useState("");
   const [submitOk, setSubmitOk] = useState("");
 
@@ -38,10 +43,10 @@ export const SignupPage: FC = () => {
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userName", name);
 
-      setSubmitOk("Аккаунт создан. Перенаправляем...");
+      setSubmitOk(t("auth.signup.ok.redirect"));
       window.location.href = "/dashboard";
     } catch {
-      setSubmitError("Не удалось создать аккаунт. Попробуйте еще раз.");
+      setSubmitError(t("auth.signup.err.generic"));
     } finally {
       setIsLoading(false);
     }
@@ -52,13 +57,15 @@ export const SignupPage: FC = () => {
       <div className="login-wrapper">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-header">
+            <AuthLangSelect disabled={isLoading} />
+
             <div className="brand-row">
               <img className="brand-icon" src={iconUrl} alt="Veloria" />
               <div className="brand-name">Veloria</div>
             </div>
 
-            <h2 className="welcome-title">Создать аккаунт</h2>
-            <p className="login-subtitle">Заполните данные, чтобы начать приключение</p>
+            <h2 className="welcome-title">{t("auth.signup.title")}</h2>
+            <p className="login-subtitle">{t("auth.signup.subtitle")}</p>
           </div>
 
           {submitError && (
@@ -81,22 +88,22 @@ export const SignupPage: FC = () => {
 
           <div className="form-group">
             <label htmlFor="name" className="form-label">
-              Имя
+              {t("auth.signup.name")}
             </label>
             <input
               id="name"
               type="text"
               className={`form-input ${errors.name ? "input-error" : ""}`}
-              placeholder="Денис"
+              placeholder={t("auth.signup.namePlaceholder")}
               value={name}
               onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name) setErrors({ ...errors, name: "" });
-              }}
+      setName(e.target.value);
+      if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+    }}
               disabled={isLoading}
               autoComplete="name"
             />
-            {errors.name && <p className="error-message">{errors.name}</p>}
+            {errors.name && <p className="error-message">{t(errors.name)}</p>}
           </div>
 
           <div className="form-group">
@@ -111,18 +118,18 @@ export const SignupPage: FC = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                if (errors.email) setErrors({ ...errors, email: "" });
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
               }}
               disabled={isLoading}
               autoComplete="email"
               inputMode="email"
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <p className="error-message">{t(errors.email)}</p>}
           </div>
 
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Пароль
+              {t("auth.signup.password")}
             </label>
             <div className="password-wrapper">
               <input
@@ -132,9 +139,9 @@ export const SignupPage: FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: "" });
-                }}
+                setPassword(e.target.value);
+                if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
+              }}
                 disabled={isLoading}
                 autoComplete="new-password"
               />
@@ -143,17 +150,17 @@ export const SignupPage: FC = () => {
                 className="toggle-password"
                 onClick={() => setShowPassword((v) => !v)}
                 disabled={isLoading}
-                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                aria-label={showPassword ? t("auth.password.hide") : t("auth.password.show")}
               >
                 <i className={showPassword ? "ri-eye-line" : "ri-eye-off-line"} aria-hidden="true" />
               </button>
             </div>
-            {errors.password && <p className="error-message">{errors.password}</p>}
+            {errors.password && <p className="error-message">{t(errors.password)}</p>}
           </div>
 
           <div className="form-group">
             <label htmlFor="confirmPassword" className="form-label">
-              Повторите пароль
+              {t("auth.signup.confirmPassword")}
             </label>
             <div className="password-wrapper">
               <input
@@ -163,9 +170,9 @@ export const SignupPage: FC = () => {
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
-                }}
+                setConfirmPassword(e.target.value);
+                if (errors.confirmPassword) setErrors((p) => ({ ...p, confirmPassword: undefined }));
+              }}
                 disabled={isLoading}
                 autoComplete="new-password"
               />
@@ -174,37 +181,35 @@ export const SignupPage: FC = () => {
                 className="toggle-password"
                 onClick={() => setShowConfirm((v) => !v)}
                 disabled={isLoading}
-                aria-label={showConfirm ? "Скрыть пароль" : "Показать пароль"}
+                aria-label={showConfirm ? t("auth.password.hide") : t("auth.password.show")}
               >
                 <i className={showConfirm ? "ri-eye-line" : "ri-eye-off-line"} aria-hidden="true" />
               </button>
             </div>
-            {errors.confirmPassword && (
-              <p className="error-message">{errors.confirmPassword}</p>
-            )}
+            {errors.confirmPassword && <p className="error-message">{t(errors.confirmPassword)}</p>}
           </div>
 
           <button type="submit" className="submit-button" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="spinner" aria-hidden="true"></span>
-                Создаем...
+                {t("auth.signup.loading")}
               </>
             ) : (
-              "Создать аккаунт"
+              t("auth.signup.submit")
             )}
           </button>
 
           <div className="form-footer">
             <p>
-              Уже есть аккаунт? <a href="/" className="signup-link">Войти</a>
+              {t("auth.signup.haveAccount")} <a href="/" className="signup-link">{t("auth.signup.signIn")}</a>
             </p>
           </div>
         </form>
       </div>
 
       <div className="login-footer">
-        <p className="footer-text">© 2026 CRM Mobile. All rights reserved.</p>
+        <p className="footer-text">© 2026 CRM Mobile. {t("auth.footer.rights")}</p>
       </div>
     </div>
   );

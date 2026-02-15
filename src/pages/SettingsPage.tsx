@@ -1,19 +1,91 @@
-import { useMemo, useRef, useState, type FC } from "react";
+import { useEffect, useMemo, useRef, useState, type FC } from "react";
 import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
 import { MessagesBell } from "../components/MessagesBell";
 import { clearAvatar, loadAvatar, saveAvatar } from "../utils/avatarStore";
+import { clearProfile, loadProfile, saveProfile, type UserProfile } from "../utils/profileStore";
+import { validateEmail } from "../utils/validation";
+import { useI18n } from "../i18n";
 import "../styles/dashboard.css";
 import "../styles/settings.css";
 
 export const SettingsPage: FC = () => {
+  const { lang, setLang, t } = useI18n();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [compactMode, setCompactMode] = useState(false);
 
+  const [profile, setProfile] = useState<UserProfile>(() => loadProfile());
+  const [profileEdit, setProfileEdit] = useState(false);
+  const [profileDraft, setProfileDraft] = useState<UserProfile>(() => loadProfile());
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
+
   const [avatarDraft, setAvatarDraft] = useState<string | null>(() => loadAvatar());
   const [avatarErr, setAvatarErr] = useState<string>("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const sync = () => {
+      const p = loadProfile();
+      setProfile(p);
+      if (!profileEdit) setProfileDraft(p);
+    };
+
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener("veloria-profile-change", sync as EventListener);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("veloria-profile-change", sync as EventListener);
+    };
+  }, [profileEdit]);
+
+  const startProfileEdit = () => {
+    setProfileNotice("");
+    setProfileErrors({});
+    setProfileDraft(profile);
+    setProfileEdit(true);
+  };
+
+  const cancelProfileEdit = () => {
+    setProfileNotice("");
+    setProfileErrors({});
+    setProfileDraft(profile);
+    setProfileEdit(false);
+  };
+
+  const validateProfile = (p: UserProfile): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    const name = p.name.trim();
+    const email = p.email.trim();
+
+    if (!name) errors.name = t("settings.validation.nameRequired");
+    if (!email) errors.email = t("settings.validation.emailRequired");
+    else if (!validateEmail(email)) errors.email = t("settings.validation.emailInvalid");
+
+    return errors;
+  };
+
+  const submitProfile = async () => {
+    setProfileNotice("");
+    const errors = validateProfile(profileDraft);
+    setProfileErrors(errors);
+    if (Object.keys(errors).length) return;
+
+    setProfileSaving(true);
+    try {
+      // Stub: replace with real API call when backend is ready.
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      saveProfile(profileDraft);
+      setProfile(profileDraft);
+      setProfileEdit(false);
+      setProfileNotice(t("settings.notice.profileUpdated"));
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   const presets = useMemo(() => {
     const mk = (a: string, b: string, glyph: string) => {
@@ -45,11 +117,11 @@ export const SettingsPage: FC = () => {
     setAvatarErr("");
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setAvatarErr("Выберите файл изображения.");
+      setAvatarErr(t("settings.avatar.err.notImage"));
       return;
     }
     if (file.size > 700_000) {
-      setAvatarErr("Файл слишком большой. Попробуйте изображение до 700KB.");
+      setAvatarErr(t("settings.avatar.err.tooLarge"));
       return;
     }
 
@@ -57,12 +129,12 @@ export const SettingsPage: FC = () => {
     r.onload = () => {
       const v = typeof r.result === "string" ? r.result : "";
       if (!v.startsWith("data:image/")) {
-        setAvatarErr("Не удалось прочитать изображение.");
+        setAvatarErr(t("settings.avatar.err.readFailed"));
         return;
       }
       setAvatarDraft(v);
     };
-    r.onerror = () => setAvatarErr("Не удалось прочитать изображение.");
+    r.onerror = () => setAvatarErr(t("settings.avatar.err.readFailed"));
     r.readAsDataURL(file);
   };
 
@@ -83,27 +155,27 @@ export const SettingsPage: FC = () => {
         </div>
 
         <nav className="dash-nav">
-          <a className="dash-nav-item" href="/dashboard" title="Главная">
+          <a className="dash-nav-item" href="/dashboard" title={t("nav.home")}>
             <span className="dash-nav-icon">
               <i className="ri-home-5-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/calendar" title="Календарь">
+          <a className="dash-nav-item" href="/calendar" title={t("nav.calendar")}>
             <span className="dash-nav-icon">
               <i className="ri-calendar-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/clients" title="Клиенты">
+          <a className="dash-nav-item" href="/clients" title={t("nav.clients")}>
             <span className="dash-nav-icon">
               <i className="ri-user-3-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/services" title="Услуги">
+          <a className="dash-nav-item" href="/services" title={t("nav.services")}>
             <span className="dash-nav-icon">
               <i className="ri-service-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item is-active" href="/settings" aria-current="page" title="Настройки">
+          <a className="dash-nav-item is-active" href="/settings" aria-current="page" title={t("nav.settings")}>
             <span className="dash-nav-icon">
               <i className="ri-settings-3-line" aria-hidden="true" />
             </span>
@@ -125,46 +197,108 @@ export const SettingsPage: FC = () => {
         <section className="dash-content">
           <div className="settings-head">
             <div>
-              <h1 className="settings-title">Настройки</h1>
-              <div className="settings-sub">Управляйте профилем, уведомлениями и приложением.</div>
+              <h1 className="settings-title">{t("settings.title")}</h1>
+              <div className="settings-sub">{t("settings.subtitle")}</div>
             </div>
           </div>
 
           <div className="settings-stack">
             <div className="dash-card settings-card">
-              <div className="settings-card-head">
-                <div className="settings-card-title">Профиль</div>
-                <button
-                  type="button"
-                  className="settings-ghost"
-                  onClick={() => window.alert("Редактирование профиля пока не подключено.")}
-                >
-                  <i className="ri-pencil-line" aria-hidden="true" /> Изменить
-                </button>
-              </div>
+              <form
+                className="settings-profile"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void submitProfile();
+                }}
+              >
+                <div className="settings-card-head">
+                  <div className="settings-card-title">{t("settings.section.profile")}</div>
 
-              <div className="settings-row">
-                <div className="settings-row-left">
-                  <div className="settings-row-name">Имя</div>
-                  <div className="settings-row-hint">Отображается в интерфейсе</div>
+                  {!profileEdit ? (
+                    <button type="button" className="settings-ghost" onClick={startProfileEdit}>
+                      <i className="ri-pencil-line" aria-hidden="true" /> {t("settings.action.edit")}
+                    </button>
+                  ) : (
+                    <div className="settings-actions">
+                      <button
+                        type="button"
+                        className="settings-ghost settings-ghost--muted"
+                        onClick={cancelProfileEdit}
+                        disabled={profileSaving}
+                      >
+                        <i className="ri-close-line" aria-hidden="true" /> {t("settings.action.cancel")}
+                      </button>
+                      <button type="submit" className="settings-ghost" disabled={profileSaving}>
+                        <i className="ri-save-3-line" aria-hidden="true" /> {t("settings.action.save")}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="settings-pill">denis343434</div>
-              </div>
 
-              <div className="settings-row">
-                <div className="settings-row-left">
-                  <div className="settings-row-name">Email</div>
-                  <div className="settings-row-hint">Для входа и уведомлений</div>
+                {profileNotice && <div className="settings-notice">{profileNotice}</div>}
+
+                <div className="settings-row">
+                  <div className="settings-row-left">
+                    <div className="settings-row-name">{t("settings.field.name")}</div>
+                    <div className="settings-row-hint">{t("settings.field.nameHint")}</div>
+                  </div>
+
+                  {!profileEdit ? (
+                    <div className="settings-pill">{profile.name || "Master"}</div>
+                  ) : (
+                    <div className="settings-edit">
+                      <input
+                        className={"settings-input" + (profileErrors.name ? " is-error" : "")}
+                        type="text"
+                        value={profileDraft.name}
+                        onChange={(e) => {
+                          setProfileDraft((prev) => ({ ...prev, name: e.target.value }));
+                          if (profileErrors.name) setProfileErrors((prev) => ({ ...prev, name: "" }));
+                        }}
+                        placeholder={t("settings.field.namePlaceholder")}
+                        autoComplete="name"
+                        disabled={profileSaving}
+                      />
+                      {profileErrors.name && <div className="settings-error">{profileErrors.name}</div>}
+                    </div>
+                  )}
                 </div>
-                <div className="settings-pill">denismorcukov@gmail.com</div>
-              </div>
+
+                <div className="settings-row">
+                  <div className="settings-row-left">
+                    <div className="settings-row-name">Email</div>
+                    <div className="settings-row-hint">{t("settings.field.emailHint")}</div>
+                  </div>
+
+                  {!profileEdit ? (
+                    <div className="settings-pill">{profile.email || "—"}</div>
+                  ) : (
+                    <div className="settings-edit">
+                      <input
+                        className={"settings-input" + (profileErrors.email ? " is-error" : "")}
+                        type="email"
+                        value={profileDraft.email}
+                        onChange={(e) => {
+                          setProfileDraft((prev) => ({ ...prev, email: e.target.value }));
+                          if (profileErrors.email) setProfileErrors((prev) => ({ ...prev, email: "" }));
+                        }}
+                        placeholder={t("settings.field.emailPlaceholder")}
+                        autoComplete="email"
+                        inputMode="email"
+                        disabled={profileSaving}
+                      />
+                      {profileErrors.email && <div className="settings-error">{profileErrors.email}</div>}
+                    </div>
+                  )}
+                </div>
+              </form>
             </div>
 
             <div className="dash-card settings-card">
               <div className="settings-card-head">
-                <div className="settings-card-title">Аватар</div>
+                <div className="settings-card-title">{t("settings.section.avatar")}</div>
                 <button type="button" className="settings-ghost" onClick={applyAvatar}>
-                  <i className="ri-save-3-line" aria-hidden="true" /> Сохранить
+                  <i className="ri-save-3-line" aria-hidden="true" /> {t("settings.action.save")}
                 </button>
               </div>
 
@@ -184,10 +318,10 @@ export const SettingsPage: FC = () => {
                           }
                         : undefined
                     }
-                    aria-label="Предпросмотр аватара"
+                    aria-label={t("settings.avatar.preview")}
                     role="img"
                   />
-                  <div className="settings-avatar-hint">Можно выбрать пресет или загрузить фото.</div>
+                  <div className="settings-avatar-hint">{t("settings.avatar.hint")}</div>
                 </div>
 
                 <div className="settings-avatar-controls">
@@ -201,7 +335,7 @@ export const SettingsPage: FC = () => {
 
                   <div className="settings-avatar-actions">
                     <button type="button" className="settings-avatar-btn" onClick={() => fileRef.current?.click()}>
-                      <i className="ri-image-add-line" aria-hidden="true" /> Загрузить
+                      <i className="ri-image-add-line" aria-hidden="true" /> {t("settings.avatar.pick")}
                     </button>
                     <button
                       type="button"
@@ -212,11 +346,11 @@ export const SettingsPage: FC = () => {
                         clearAvatar();
                       }}
                     >
-                      <i className="ri-delete-bin-6-line" aria-hidden="true" /> Сбросить
+                      <i className="ri-delete-bin-6-line" aria-hidden="true" /> {t("settings.avatar.reset")}
                     </button>
                   </div>
 
-                  <div className="settings-avatar-grid" aria-label="Пресеты аватара">
+                  <div className="settings-avatar-grid" aria-label={t("settings.avatar.presets")}>
                     {presets.map((p) => (
                       <button
                         key={p}
@@ -227,7 +361,7 @@ export const SettingsPage: FC = () => {
                           setAvatarDraft(p);
                         }}
                         style={{ backgroundImage: `url(${p})` }}
-                        title="Выбрать аватар"
+                        title={t("settings.avatar.pickPreset")}
                       />
                     ))}
                   </div>
@@ -237,15 +371,15 @@ export const SettingsPage: FC = () => {
 
             <div className="dash-card settings-card">
               <div className="settings-card-head">
-                <div className="settings-card-title">Уведомления</div>
+                <div className="settings-card-title">{t("settings.section.notifications")}</div>
               </div>
 
               <label className="settings-toggle">
                 <input type="checkbox" checked={pushEnabled} onChange={(e) => setPushEnabled(e.target.checked)} />
                 <span className="settings-toggle-ui" aria-hidden="true" />
                 <span className="settings-toggle-text">
-                  <span className="settings-toggle-title">Push-уведомления</span>
-                  <span className="settings-toggle-hint">Напоминания о записях и задачах</span>
+                  <span className="settings-toggle-title">{t("settings.notifications.pushTitle")}</span>
+                  <span className="settings-toggle-hint">{t("settings.notifications.pushHint")}</span>
                 </span>
               </label>
 
@@ -253,28 +387,37 @@ export const SettingsPage: FC = () => {
                 <input type="checkbox" checked={emailEnabled} onChange={(e) => setEmailEnabled(e.target.checked)} />
                 <span className="settings-toggle-ui" aria-hidden="true" />
                 <span className="settings-toggle-text">
-                  <span className="settings-toggle-title">Email-уведомления</span>
-                  <span className="settings-toggle-hint">Сводки и важные изменения</span>
+                  <span className="settings-toggle-title">{t("settings.notifications.emailTitle")}</span>
+                  <span className="settings-toggle-hint">{t("settings.notifications.emailHint")}</span>
                 </span>
               </label>
             </div>
 
             <div className="dash-card settings-card">
               <div className="settings-card-head">
-                <div className="settings-card-title">Приложение</div>
+                <div className="settings-card-title">{t("settings.section.app")}</div>
               </div>
 
               <div className="settings-row">
                 <div className="settings-row-left">
-                  <div className="settings-row-name">Язык</div>
-                  <div className="settings-row-hint">Интерфейс приложения</div>
+                  <div className="settings-row-name">{t("settings.app.language")}</div>
+                  <div className="settings-row-hint">{t("settings.app.languageHint")}</div>
                 </div>
-                <div className="settings-select-wrap">
-                  <select className="settings-select" defaultValue="ru">
-                    <option value="ru">Русский</option>
-                    <option value="en">English</option>
-                  </select>
-                  <i className="ri-arrow-down-s-line" aria-hidden="true" />
+                <div className="settings-lang-buttons">
+                  <button
+                    className={`settings-lang-btn ${lang === 'ru' ? 'active' : ''}`}
+                    onClick={() => setLang('ru')}
+                    aria-label={t("lang.ru")}
+                  >
+                    RU
+                  </button>
+                  <button
+                    className={`settings-lang-btn ${lang === 'en' ? 'active' : ''}`}
+                    onClick={() => setLang('en')}
+                    aria-label={t("lang.en")}
+                  >
+                    EN
+                  </button>
                 </div>
               </div>
 
@@ -282,15 +425,15 @@ export const SettingsPage: FC = () => {
                 <input type="checkbox" checked={compactMode} onChange={(e) => setCompactMode(e.target.checked)} />
                 <span className="settings-toggle-ui" aria-hidden="true" />
                 <span className="settings-toggle-text">
-                  <span className="settings-toggle-title">Компактный режим</span>
-                  <span className="settings-toggle-hint">Меньше отступов, больше данных</span>
+                  <span className="settings-toggle-title">{t("settings.app.compactTitle")}</span>
+                  <span className="settings-toggle-hint">{t("settings.app.compactHint")}</span>
                 </span>
               </label>
             </div>
 
             <div className="dash-card settings-card">
               <div className="settings-card-head">
-                <div className="settings-card-title">Безопасность</div>
+                <div className="settings-card-title">{t("settings.section.security")}</div>
               </div>
 
               <button
@@ -299,10 +442,11 @@ export const SettingsPage: FC = () => {
                 onClick={() => {
                   localStorage.removeItem("authToken");
                   sessionStorage.removeItem("authToken");
+                  clearProfile();
                   window.location.href = "/";
                 }}
               >
-                <i className="ri-logout-box-r-line" aria-hidden="true" /> Выйти из аккаунта
+                <i className="ri-logout-box-r-line" aria-hidden="true" /> {t("settings.security.logout")}
               </button>
             </div>
           </div>
@@ -311,4 +455,3 @@ export const SettingsPage: FC = () => {
     </div>
   );
 };
-

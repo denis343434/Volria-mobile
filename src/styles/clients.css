@@ -13,6 +13,30 @@
   letter-spacing: -0.3px;
 }
 
+.qc-title {
+  font-size: 15px !important;
+  color: rgba(233, 233, 246, 0.45);
+  font-weight: 600 !important;
+}
+
+.qc-sub {
+  font-size: 11px !important;
+  color: rgba(233, 233, 246, 0.35);
+  font-weight: 500 !important;
+}
+
+.qc-label {
+  font-size: 11px !important;
+  color: rgba(233, 233, 246, 0.25);
+  font-weight: 600 !important;
+  text-transform: uppercase;
+}
+
+.qc-btn {
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
 .clients-sub {
   margin-top: 6px;
   color: rgba(233, 233, 246, 0.45);
@@ -31,8 +55,8 @@
   height: 36px;
   padding: 0 12px;
   border-radius: 12px;
-  font-weight: 900;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -71,7 +95,7 @@
 }
 
 .clients-block-title {
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.9);
 }
 
@@ -103,9 +127,9 @@
 }
 
 .clients-field-label {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(233, 233, 246, 0.42);
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .clients-input-wrap {
@@ -148,6 +172,16 @@
   color: rgba(233, 233, 246, 0.65);
 }
 
+.clients-select-wrap:focus-within {
+  border-color: rgba(255, 0, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.25);
+}
+
+.clients-select-wrap i {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
 .clients-select {
   width: 100%;
   border: none;
@@ -155,6 +189,18 @@
   background: transparent;
   color: rgba(233, 233, 246, 0.85);
   appearance: none;
+  /* Hint UA to render the native select dropdown in dark colors where supported. */
+  color-scheme: dark;
+}
+
+.clients-select option,
+.clients-select optgroup {
+  background: #12121a;
+  color: rgba(233, 233, 246, 0.92);
+}
+
+.clients-select option:disabled {
+  color: rgba(233, 233, 246, 0.45);
 }
 
 .clients-pills {
@@ -165,12 +211,12 @@
 
 .clients-pill {
   height: 34px;
-  padding: 0 12px;
+  padding: 0 11px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(233, 233, 246, 0.6);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
 }
 
@@ -207,14 +253,14 @@
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
   color: rgba(233, 233, 246, 0.7);
   margin-right: 8px;
 }
 
 .clients-name {
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.9);
 }
 
@@ -232,6 +278,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 600 !important;
 }
 
 .clients-meta-row i {
@@ -248,7 +295,7 @@
 
 .clients-small-label {
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.42);
 }
 
@@ -268,8 +315,13 @@
   border: 1px solid rgba(80, 170, 255, 0.25);
   background: rgba(80, 170, 255, 0.16);
   color: rgba(170, 225, 255, 0.95);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
+}
+
+.clients-footer-text {
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .clients-item-actions {
@@ -296,6 +348,21 @@
   place-items: center;
   color: rgba(233, 233, 246, 0.65);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.clients-ico:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.clients-ico:focus-visible {
+  outline: 2px solid rgba(255, 0, 255, 0.55);
+  outline-offset: -2px;
+}
+
+.clients-ico:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 .clients-ico:last-child {
@@ -364,4 +431,3 @@
     grid-template-columns: 1fr;
   }
 }
-

@@ -3,26 +3,29 @@ import iconUrl from "../assets/img/icon.svg";
 import "../styles/login.css";
 import { validateLoginForm } from "../utils/validation";
 import type { LoginCredentials } from "../types/user";
+import { useI18n, type I18nKey } from "../i18n";
+import { AuthLangSelect } from "../components/AuthLangSelect";
 
 type SocialProvider = "vk" | "yandex" | "gmail";
 
 export const LoginPage: FC = () => {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"email" | "password", I18nKey>>>({});
   const [submitError, setSubmitError] = useState("");
 
   const providerLabel = useMemo(
     () =>
       ({
-        vk: "ВКонтакте",
-        yandex: "Яндекс",
-        gmail: "Gmail",
+        vk: t("auth.provider.vk"),
+        yandex: t("auth.provider.yandex"),
+        gmail: t("auth.provider.gmail"),
       }) satisfies Record<SocialProvider, string>,
-    [],
+    [t],
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +62,7 @@ export const LoginPage: FC = () => {
       // Redirect to dashboard
       window.location.href = "/dashboard";
     } catch {
-      setSubmitError("Не удалось войти. Попробуйте еще раз.");
+      setSubmitError(t("auth.login.err.generic"));
     } finally {
       setIsLoading(false);
     }
@@ -69,21 +72,24 @@ export const LoginPage: FC = () => {
     setSubmitError("");
 
     // Stub: wire to real OAuth endpoints when backend is ready.
-    setSubmitError(`Вход через ${providerLabel[provider]} пока не подключен.`);
+    setSubmitError(t("auth.login.social.notConnected", { provider: providerLabel[provider] }));
   };
 
   return (
+    
     <div className="login-container">
       <div className="login-wrapper">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-header">
+            <AuthLangSelect disabled={isLoading} />
+
             <div className="brand-row">
               <img className="brand-icon" src={iconUrl} alt="Veloria" />
               <div className="brand-name">Veloria</div>
             </div>
 
-            <h2 className="welcome-title">Добро пожаловать в Veloria!</h2>
-            <p className="login-subtitle">Войдите в свой аккаунт и начните приключение</p>
+            <h2 className="welcome-title">{t("auth.login.title")}</h2>
+            <p className="login-subtitle">{t("auth.login.subtitle")}</p>
           </div>
 
           {submitError && (
@@ -107,18 +113,18 @@ export const LoginPage: FC = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                if (errors.email) setErrors({ ...errors, email: "" });
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
               }}
               disabled={isLoading}
               autoComplete="email"
               inputMode="email"
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <p className="error-message">{t(errors.email)}</p>}
           </div>
 
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Пароль
+              {t("auth.login.password")}
             </label>
             <div className="password-wrapper">
               <input
@@ -129,7 +135,7 @@ export const LoginPage: FC = () => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: "" });
+                  if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
                 }}
                 disabled={isLoading}
                 autoComplete="current-password"
@@ -139,12 +145,12 @@ export const LoginPage: FC = () => {
                 className="toggle-password"
                 onClick={() => setShowPassword((v) => !v)}
                 disabled={isLoading}
-                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                aria-label={showPassword ? t("auth.password.hide") : t("auth.password.show")}
               >
                 <i className={showPassword ? "ri-eye-line" : "ri-eye-off-line"} aria-hidden="true" />
               </button>
             </div>
-            {errors.password && <p className="error-message">{errors.password}</p>}
+            {errors.password && <p className="error-message">{t(errors.password)}</p>}
           </div>
 
           <div className="form-remember">
@@ -155,13 +161,13 @@ export const LoginPage: FC = () => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 disabled={isLoading}
               />
-              <span>Запомнить меня</span>
+              <span>{t("auth.login.remember")}</span>
             </label>
             <a
               href="/forgot-password"
               className="forgot-password"
             >
-              Забыли пароль?
+              {t("auth.login.forgot")}
             </a>
           </div>
 
@@ -169,27 +175,27 @@ export const LoginPage: FC = () => {
             {isLoading ? (
               <>
                 <span className="spinner" aria-hidden="true"></span>
-                Входим...
+                {t("auth.login.loading")}
               </>
             ) : (
-              "Войти"
+              t("auth.login.submit")
             )}
           </button>
 
           <div className="form-footer">
             <p>
-              Впервые на нашей платформе?{" "}
+              {t("auth.login.firstTime")}{" "}
               <a
                 href="/signup"
                 className="signup-link"
               >
-                Создать аккаунт
+                {t("auth.login.createAccount")}
               </a>
             </p>
           </div>
 
           <div className="divider">
-            <span>или</span>
+            <span>{t("auth.login.divider")}</span>
           </div>
 
           <div className="social-buttons">
@@ -200,9 +206,9 @@ export const LoginPage: FC = () => {
               onClick={() => handleSocialLogin("vk")}
             >
               <span className="social-badge" aria-hidden="true">
-                vk
+                <i className="fa-brands fa-vk" aria-hidden="true" />
               </span>
-              Войти Через ВКонтакте
+              {t("auth.social.signInWith", { provider: providerLabel.vk })}
             </button>
 
             <button
@@ -212,9 +218,9 @@ export const LoginPage: FC = () => {
               onClick={() => handleSocialLogin("yandex")}
             >
               <span className="social-badge" aria-hidden="true">
-                ✉
+                <i className="fab fa-yandex"></i> 
               </span>
-              Войти Через Яндекс
+              {t("auth.social.signInWith", { provider: providerLabel.yandex })}
             </button>
 
             <button
@@ -224,18 +230,17 @@ export const LoginPage: FC = () => {
               onClick={() => handleSocialLogin("gmail")}
             >
               <span className="social-badge" aria-hidden="true">
-                G
+                <i className="fab fa-google"></i>
               </span>
-              Войти Через Gmail
+              {t("auth.social.signInWith", { provider: providerLabel.gmail })}
             </button>
           </div>
         </form>
       </div>
 
       <div className="login-footer">
-        <p className="footer-text">© 2026 CRM Mobile. All rights reserved.</p>
+        <p className="footer-text">© 2026 CRM Mobile. {t("auth.footer.rights")}</p>
       </div>
     </div>
   );
 };
-

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FC } from "react";
 import { createPortal } from "react-dom";
+import { useI18n } from "../i18n";
 
 type Message = {
   id: string;
@@ -22,6 +23,7 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export const MessagesBell: FC = () => {
+  const { lang, t } = useI18n();
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const popRef = useRef<HTMLDivElement | null>(null);
@@ -34,29 +36,61 @@ export const MessagesBell: FC = () => {
     maxHeight: 420,
   }));
 
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: "m1",
-      title: "Новая запись",
-      body: "Клиент попросил перенести время. Проверьте календарь.",
-      time: "Только что",
-      unread: true,
-    },
-    {
-      id: "m2",
-      title: "Напоминание",
-      body: "Сегодня нет запланированных визитов. Самое время написать клиентам.",
-      time: "10 мин назад",
-      unread: false,
-    },
-    {
-      id: "m3",
-      title: "Система",
-      body: "Профиль обновлен. Проверьте настройки уведомлений.",
-      time: "Вчера",
-      unread: false,
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    return [
+      {
+        id: "m1",
+        title: t("messages.demo.newBooking.title"),
+        body: t("messages.demo.newBooking.body"),
+        time: t("messages.demo.newBooking.time"),
+        unread: true,
+      },
+      {
+        id: "m2",
+        title: t("messages.demo.reminder.title"),
+        body: t("messages.demo.reminder.body"),
+        time: t("messages.demo.reminder.time"),
+        unread: false,
+      },
+      {
+        id: "m3",
+        title: t("messages.demo.system.title"),
+        body: t("messages.demo.system.body"),
+        time: t("messages.demo.system.time"),
+        unread: false,
+      },
+    ];
+  });
+
+  useEffect(() => {
+    // Keep demo message text in sync with the selected language while preserving read/unread state.
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m.id === "m1")
+          return {
+            ...m,
+            title: t("messages.demo.newBooking.title"),
+            body: t("messages.demo.newBooking.body"),
+            time: t("messages.demo.newBooking.time"),
+          };
+        if (m.id === "m2")
+          return {
+            ...m,
+            title: t("messages.demo.reminder.title"),
+            body: t("messages.demo.reminder.body"),
+            time: t("messages.demo.reminder.time"),
+          };
+        if (m.id === "m3")
+          return {
+            ...m,
+            title: t("messages.demo.system.title"),
+            body: t("messages.demo.system.body"),
+            time: t("messages.demo.system.time"),
+          };
+        return m;
+      }),
+    );
+  }, [lang, t]);
 
   const unreadCount = useMemo(() => messages.filter((m) => m.unread).length, [messages]);
 
@@ -151,7 +185,7 @@ export const MessagesBell: FC = () => {
         ref={btnRef}
         className="dash-icon-btn"
         type="button"
-        title="Сообщения"
+        title={t("messages.title")}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="dash-messages"
@@ -168,17 +202,19 @@ export const MessagesBell: FC = () => {
             className="dash-pop"
             id="dash-messages"
             role="dialog"
-            aria-label="Сообщения"
+            aria-label={t("messages.title")}
             style={{ top: pos.top, left: pos.left, width: pos.width, maxHeight: pos.maxHeight }}
           >
             <div className="dash-pop-head">
               <div>
-                <div className="dash-pop-title">Сообщения</div>
-                <div className="dash-pop-sub">{messages.length ? `Новых: ${unreadCount}` : "Пока пусто"}</div>
+                <div className="dash-pop-title">{t("messages.title")}</div>
+                <div className="dash-pop-sub">
+                  {messages.length ? t("messages.unreadCount", { count: unreadCount }) : t("messages.emptyState")}
+                </div>
               </div>
               <div className="dash-pop-actions">
                 <button type="button" className="dash-pop-btn" onClick={markAllRead} disabled={!unreadCount}>
-                  Прочитано
+                  {t("messages.markRead")}
                 </button>
                 <button
                   type="button"
@@ -186,7 +222,7 @@ export const MessagesBell: FC = () => {
                   onClick={clearAll}
                   disabled={!messages.length}
                 >
-                  Очистить
+                  {t("messages.clear")}
                 </button>
               </div>
             </div>
@@ -194,8 +230,8 @@ export const MessagesBell: FC = () => {
             <div className="dash-pop-list" role="list">
               {!messages.length ? (
                 <div className="dash-pop-empty">
-                  <div className="dash-pop-empty-title">Нет сообщений</div>
-                  <div className="dash-pop-empty-text">Когда появятся события, они будут здесь.</div>
+                  <div className="dash-pop-empty-title">{t("messages.noneTitle")}</div>
+                  <div className="dash-pop-empty-text">{t("messages.noneBody")}</div>
                 </div>
               ) : (
                 messages.map((m) => (
@@ -204,7 +240,7 @@ export const MessagesBell: FC = () => {
                     key={m.id}
                     className={"dash-pop-item" + (m.unread ? " is-unread" : "")}
                     onClick={() => toggleUnread(m.id)}
-                    title="Нажмите чтобы отметить как прочитано/непрочитано"
+                    title={t("messages.toggleReadHint")}
                   >
                     <div className="dash-pop-item-top">
                       <div className="dash-pop-item-title">{m.title}</div>
@@ -221,4 +257,3 @@ export const MessagesBell: FC = () => {
     </div>
   );
 };
-

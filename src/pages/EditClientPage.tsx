@@ -3,11 +3,15 @@ import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
 import { DatePickerField } from "../components/DatePickerField";
 import { MessagesBell } from "../components/MessagesBell";
-import { addClient, type ClientLoyalty } from "../utils/clientsStore";
+import { getClientById, updateClient, type ClientLoyalty } from "../utils/clientsStore";
 import { useI18n } from "../i18n";
 import "../styles/dashboard.css";
 import "../styles/clients.css";
 import "../styles/clientForm.css";
+
+type Props = {
+  clientId: string;
+};
 
 type FormState = {
   name: string;
@@ -22,22 +26,24 @@ type FormState = {
   notes: string;
 };
 
-export const AddClientPage: FC = () => {
+export const EditClientPage: FC<Props> = ({ clientId }) => {
   const { t } = useI18n();
+  const client = useMemo(() => getClientById(clientId), [clientId]);
+
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string>("");
 
   const [form, setForm] = useState<FormState>(() => ({
-    name: "",
-    phone: "",
-    email: "",
-    loyalty: "Не задан",
-    birthday: "",
-    lastVisit: "",
-    tags: "",
-    allergies: "",
-    preferences: "",
-    notes: "",
+    name: client?.name ?? "",
+    phone: client?.phone ?? "",
+    email: client?.email ?? "",
+    loyalty: (client?.loyalty ?? "Не задан") as ClientLoyalty,
+    birthday: client?.birthday ?? "",
+    lastVisit: client?.lastVisit ?? "",
+    tags: client?.tags ?? "",
+    allergies: client?.allergies ?? "",
+    preferences: client?.preferences ?? "",
+    notes: client?.notes ?? "",
   }));
 
   const canSubmit = useMemo(() => form.name.trim().length >= 2 && !saving, [form.name, saving]);
@@ -45,7 +51,7 @@ export const AddClientPage: FC = () => {
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((p) => ({ ...p, [k]: v }));
 
   const cancel = () => {
-    window.location.href = "/clients";
+    window.location.href = client ? `/clients/${encodeURIComponent(client.id)}` : "/clients";
   };
 
   const submit = (e: FormEvent) => {
@@ -58,9 +64,14 @@ export const AddClientPage: FC = () => {
       return;
     }
 
+    if (!client) {
+      setErr(t("clientForm.err.notFound"));
+      return;
+    }
+
     setSaving(true);
     try {
-      addClient({
+      const updated = updateClient(client.id, {
         name,
         phone: form.phone.trim() || undefined,
         email: form.email.trim() || undefined,
@@ -72,7 +83,12 @@ export const AddClientPage: FC = () => {
         preferences: form.preferences.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
-      window.location.href = "/clients";
+      if (!updated) {
+        setErr(t("clientForm.err.saveFailed"));
+        setSaving(false);
+        return;
+      }
+      window.location.href = `/clients/${encodeURIComponent(updated.id)}`;
     } catch {
       setErr(t("clientForm.err.saveFailed"));
       setSaving(false);
@@ -129,15 +145,17 @@ export const AddClientPage: FC = () => {
         <section className="dash-content">
           <div className="cf-head">
             <div>
-              <h1 className="cf-title">{t("clientForm.add.title")}</h1>
-              <div className="cf-sub">{t("clientForm.add.subtitle")}</div>
+              <h1 className="cf-title">{t("clientForm.edit.title")}</h1>
+              <div className="cf-sub">{t("clientForm.edit.subtitle")}</div>
             </div>
             <button type="button" className="cf-back" onClick={cancel}>
-              <i className="ri-arrow-left-line" aria-hidden="true" /> {t("clientForm.backToList")}
+              <i className="ri-arrow-left-line" aria-hidden="true" /> {t("common.back")}
             </button>
           </div>
 
           <form className="dash-card cf-card" onSubmit={submit}>
+            {!client && <div className="dash-note">{t("clientForm.err.notFound")}</div>}
+
             {err && (
               <div className="cf-error" role="alert">
                 <i className="ri-error-warning-line" aria-hidden="true" /> {err}
@@ -153,6 +171,7 @@ export const AddClientPage: FC = () => {
                   onChange={(e) => update("name", e.target.value)}
                   placeholder={t("clientForm.namePlaceholder")}
                   autoComplete="name"
+                  disabled={!client || saving}
                 />
               </label>
 
@@ -165,6 +184,7 @@ export const AddClientPage: FC = () => {
                   placeholder="+7 ___ ___ ____"
                   autoComplete="tel"
                   inputMode="tel"
+                  disabled={!client || saving}
                 />
               </label>
 
@@ -177,17 +197,14 @@ export const AddClientPage: FC = () => {
                   placeholder="Email"
                   autoComplete="email"
                   inputMode="email"
+                  disabled={!client || saving}
                 />
               </label>
 
               <label className="cf-field">
                 <div className="cf-label">{t("clientForm.loyalty")}</div>
                 <div className="cf-select-wrap">
-                  <select
-                    className="cf-select"
-                    value={form.loyalty}
-                    onChange={(e) => update("loyalty", e.target.value as ClientLoyalty)}
-                  >
+                  <select className="cf-select" value={form.loyalty} onChange={(e) => update("loyalty", e.target.value as ClientLoyalty)} disabled={!client || saving}>
                     <option value="Не задан">{t("clients.loyalty.unspecified")}</option>
                     <option value="VIP">VIP</option>
                     <option value="Обычный">{t("clients.loyalty.regular")}</option>
@@ -213,49 +230,22 @@ export const AddClientPage: FC = () => {
 
               <label className="cf-field cf-field--span">
                 <div className="cf-label">{t("clientForm.tags")}</div>
-                <textarea
-                  className="cf-area"
-                  rows={3}
-                  value={form.tags}
-                  onChange={(e) => update("tags", e.target.value)}
-                  placeholder={t("clientForm.tagsPlaceholder")}
-                />
-                <div className="cf-hint">{t("clientForm.tagsHint")}</div>
+                <textarea className="cf-area" rows={3} value={form.tags} onChange={(e) => update("tags", e.target.value)} placeholder={t("clientForm.tagsPlaceholder")} disabled={!client || saving} />
               </label>
 
               <label className="cf-field cf-field--span">
                 <div className="cf-label">{t("clientForm.allergies")}</div>
-                <textarea
-                  className="cf-area"
-                  rows={3}
-                  value={form.allergies}
-                  onChange={(e) => update("allergies", e.target.value)}
-                  placeholder={t("clientForm.allergiesPlaceholder")}
-                />
-                <div className="cf-hint">{t("clientForm.allergiesHint")}</div>
+                <textarea className="cf-area" rows={3} value={form.allergies} onChange={(e) => update("allergies", e.target.value)} placeholder={t("clientForm.allergiesPlaceholder")} disabled={!client || saving} />
               </label>
 
               <label className="cf-field cf-field--span">
                 <div className="cf-label">{t("clientForm.preferences")}</div>
-                <textarea
-                  className="cf-area"
-                  rows={3}
-                  value={form.preferences}
-                  onChange={(e) => update("preferences", e.target.value)}
-                  placeholder={t("clientForm.preferencesPlaceholder")}
-                />
-                <div className="cf-hint">{t("clientForm.preferencesHint")}</div>
+                <textarea className="cf-area" rows={3} value={form.preferences} onChange={(e) => update("preferences", e.target.value)} placeholder={t("clientForm.preferencesPlaceholder")} disabled={!client || saving} />
               </label>
 
               <label className="cf-field cf-field--span">
                 <div className="cf-label">{t("clientForm.notes")}</div>
-                <textarea
-                  className="cf-area"
-                  rows={4}
-                  value={form.notes}
-                  onChange={(e) => update("notes", e.target.value)}
-                  placeholder={t("clientForm.notesPlaceholder")}
-                />
+                <textarea className="cf-area" rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder={t("clientForm.notesPlaceholder")} disabled={!client || saving} />
               </label>
             </div>
 
@@ -263,8 +253,8 @@ export const AddClientPage: FC = () => {
               <button type="button" className="cf-btn cf-btn--muted" onClick={cancel} disabled={saving}>
                 {t("common.cancel")}
               </button>
-              <button type="submit" className="cf-btn cf-btn--primary" disabled={!canSubmit}>
-                {saving ? t("clientForm.saving") : t("clientForm.create")}
+              <button type="submit" className="cf-btn cf-btn--primary" disabled={!client || !canSubmit}>
+                {saving ? t("clientForm.saving") : t("clientForm.save")}
               </button>
             </div>
           </form>

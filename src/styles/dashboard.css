@@ -186,14 +186,14 @@
 }
 
 .dash-pop-title {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.92);
 }
 
 .dash-pop-sub {
   margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.45);
 }
 
@@ -209,7 +209,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(233, 233, 246, 0.65);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
 }
 
@@ -261,20 +261,20 @@
 }
 
 .dash-pop-item-title {
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.9);
 }
 
 .dash-pop-item-time {
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.45);
   flex-shrink: 0;
 }
 
 .dash-pop-item-body {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.35;
   color: rgba(233, 233, 246, 0.6);
 }
@@ -287,7 +287,7 @@
 }
 
 .dash-pop-empty-title {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.82);
 }
 
@@ -311,6 +311,150 @@
     ),
     linear-gradient(135deg, rgba(255, 0, 255, 0.12), rgba(255, 255, 255, 0.06));
   position: relative;
+}
+
+.dash-user {
+  position: relative;
+}
+
+.dash-avatar-btn {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.dash-avatar-btn:focus-visible {
+  outline: 2px solid rgba(255, 0, 255, 0.55);
+  outline-offset: 3px;
+}
+
+.dash-user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 240px;
+  max-width: calc(100vw - 24px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(35, 35, 54, 0.98);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  z-index: 90;
+  transform-origin: top right;
+  animation: dashMenuIn 120ms ease-out both;
+}
+
+@keyframes dashMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dash-user-menu-head {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dash-user-menu-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-user-menu-name {
+  font-weight: 700;
+  color: rgba(233, 233, 246, 0.92);
+  letter-spacing: -0.2px;
+}
+
+.dash-user-menu-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(233, 233, 246, 0.55);
+}
+
+.dash-user-menu-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+.dash-user-menu-list {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dash-user-menu-item {
+  text-decoration: none;
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(233, 233, 246, 0.78);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.dash-user-menu-item i {
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(233, 233, 246, 0.7);
+}
+
+.dash-user-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(233, 233, 246, 0.92);
+}
+
+.dash-user-menu-item:active {
+  opacity: 0.95;
+}
+
+.dash-user-menu-logout {
+  width: calc(100% - 20px);
+  margin: 0 10px 12px;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(255, 72, 72, 0.92) 0%, rgba(255, 0, 255, 0.72) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dash-user-menu-logout i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dash-user-menu-logout:active {
+  transform: translateY(1px);
 }
 
 .dash-avatar-dot {
@@ -337,10 +481,10 @@
 }
 
 .dash-kicker {
-  font-size: 12px;
+  font-size: 16px;
   color: rgba(233, 233, 246, 0.42);
   letter-spacing: 0.8px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .dash-title {
@@ -370,7 +514,7 @@
 .dash-section-title {
   margin-top: 6px;
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.2px;
 }
 
@@ -381,7 +525,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(233, 233, 246, 0.65);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -421,7 +565,7 @@
 
 .dash-card-title {
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.92);
 }
 
@@ -442,7 +586,7 @@
   padding: 0 10px;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.2px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
@@ -478,13 +622,13 @@
 }
 
 .dash-row-title {
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.75);
 }
 
 .dash-row-right {
   color: rgba(233, 233, 246, 0.45);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .dash-bar {
@@ -507,7 +651,7 @@
 }
 
 .dash-row-money {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.6);
 }
 
@@ -535,20 +679,20 @@
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
 }
 
 .dash-client-line {
-  font-weight: 900;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.7);
 }
 
 .dash-client-line--muted {
   margin-top: 4px;
-  font-weight: 800;
+  font-weight: 600;
   color: rgba(233, 233, 246, 0.45);
 }
 .dash-rev-list {
@@ -573,12 +717,12 @@
 }
 
 .dash-rev-date {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.75);
 }
 
 .dash-rev-money {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.55);
 }
 
@@ -586,7 +730,7 @@
   margin-top: 8px;
   color: rgba(233, 233, 246, 0.45);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .dash-empty {
   padding: 14px;
@@ -602,7 +746,7 @@
   border-radius: 12px;
   border: none;
   color: white;
-  font-weight: 900;
+  font-weight: 700;
   background: linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent2) 100%);
   box-shadow: 0 14px 26px rgba(255, 0, 255, 0.25);
 }
@@ -617,7 +761,7 @@
   background: rgba(255, 255, 255, 0.04);
   color: rgba(233, 233, 246, 0.55);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 70 g0;
 }
 
 .dash-metrics {
@@ -637,13 +781,13 @@
 .dash-metric-label {
   font-size: 12px;
   color: rgba(233, 233, 246, 0.45);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .dash-metric-value {
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 700;
   margin-top: 6px;
 }
 
@@ -668,12 +812,12 @@
 
 .dash-tag {
   height: 26px;
-  padding: 0 12px;
+  padding: 3px 12px 0 12px;
   border-radius: 10px;
   background: rgba(255, 0, 255, 0.2);
   color: rgba(255, 160, 255, 0.98);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.4px;
 }
 
@@ -686,6 +830,7 @@
   color: rgba(255, 160, 255, 0.98);
   display: grid;
   place-items: center;
+  padding-left: 5px;
 }
 
 .dash-assistant {
@@ -707,7 +852,7 @@
 }
 
 .dash-assistant-title {
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(233, 233, 246, 0.9);
 }
 
@@ -719,7 +864,7 @@
   background: rgba(255, 255, 255, 0.04);
   color: rgba(233, 233, 246, 0.5);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.3px;
 }
 
@@ -739,12 +884,12 @@
 
 .dash-outline {
   height: 40px;
-  padding: 0 14px;
+  padding: 5px 4px 0 0;
   border-radius: 12px;
   border: 1px solid rgba(255, 0, 255, 0.6);
   background: rgba(255, 0, 255, 0.06);
   color: rgba(255, 160, 255, 0.98);
-  font-weight: 900;
+  font-weight: 600;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -752,12 +897,12 @@
 
 .dash-muted {
   height: 40px;
-  padding: 0 14px;
+  padding: 5px 4px 0 14px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(233, 233, 246, 0.45);
-  font-weight: 900;
+  font-weight: 600;
   width: 100%;
   display: flex;
   justify-content: center;

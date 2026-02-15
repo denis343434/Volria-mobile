@@ -1,3 +1,5 @@
+import type { I18nKey } from "../i18n";
+
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -7,19 +9,22 @@ export const validatePassword = (password: string): boolean => {
   return password.length >= 6;
 };
 
-export const validateLoginForm = (email: string, password: string): { valid: boolean; errors: Record<string, string> } => {
-  const errors: Record<string, string> = {};
+export const validateLoginForm = (
+  email: string,
+  password: string,
+): { valid: boolean; errors: Record<string, I18nKey> } => {
+  const errors: Record<string, I18nKey> = {};
 
   if (!email) {
-    errors.email = 'Email is required';
+    errors.email = "validation.emailRequired";
   } else if (!validateEmail(email)) {
-    errors.email = 'Please enter a valid email';
+    errors.email = "validation.emailInvalid";
   }
 
   if (!password) {
-    errors.password = 'Password is required';
+    errors.password = "validation.passwordRequired";
   } else if (!validatePassword(password)) {
-    errors.password = 'Password must be at least 6 characters';
+    errors.password = "validation.passwordMin";
   }
 
   return {
@@ -33,29 +38,29 @@ export const validateSignupForm = (
   email: string,
   password: string,
   confirmPassword: string,
-): { valid: boolean; errors: Record<string, string> } => {
-  const errors: Record<string, string> = {};
+): { valid: boolean; errors: Record<string, I18nKey> } => {
+  const errors: Record<string, I18nKey> = {};
 
   if (!name.trim()) {
-    errors.name = "Name is required";
+    errors.name = "validation.nameRequired";
   }
 
   if (!email) {
-    errors.email = "Email is required";
+    errors.email = "validation.emailRequired";
   } else if (!validateEmail(email)) {
-    errors.email = "Please enter a valid email";
+    errors.email = "validation.emailInvalid";
   }
 
   if (!password) {
-    errors.password = "Password is required";
+    errors.password = "validation.passwordRequired";
   } else if (!validatePassword(password)) {
-    errors.password = "Password must be at least 6 characters";
+    errors.password = "validation.passwordMin";
   }
 
   if (!confirmPassword) {
-    errors.confirmPassword = "Please confirm your password";
+    errors.confirmPassword = "validation.confirmPasswordRequired";
   } else if (password && confirmPassword !== password) {
-    errors.confirmPassword = "Passwords do not match";
+    errors.confirmPassword = "validation.passwordsNoMatch";
   }
 
   return {
@@ -66,13 +71,13 @@ export const validateSignupForm = (
 
 export const validateForgotPasswordForm = (
   email: string,
-): { valid: boolean; errors: Record<string, string> } => {
-  const errors: Record<string, string> = {};
+): { valid: boolean; errors: Record<string, I18nKey> } => {
+  const errors: Record<string, I18nKey> = {};
 
   if (!email) {
-    errors.email = "Email is required";
+    errors.email = "validation.emailRequired";
   } else if (!validateEmail(email)) {
-    errors.email = "Please enter a valid email";
+    errors.email = "validation.emailInvalid";
   }
 
   return {

@@ -4,11 +4,28 @@ import iconUrl from "../assets/img/icon.svg";
 import { AvatarBubble } from "../components/AvatarBubble";
 import { MessagesBell } from "../components/MessagesBell";
 import { addClient, loadClients, removeClient, type ClientRecord } from "../utils/clientsStore";
+import { useI18n } from "../i18n";
 import "../styles/dashboard.css";
 import "../styles/clients.css";
 import "../styles/quickCreate.css";
 
 type Loyalty = "all" | "vip" | "regular" | "new";
+
+// Константы для значений лояльности на разных языках
+const LOYALTY_VALUES = {
+  ru: {
+    UNSET: "Не задан",
+    VIP: "VIP",
+    REGULAR: "Обычный",
+    NEW: "Новый",
+  },
+  en: {
+    UNSET: "Unspecified",
+    VIP: "VIP",
+    REGULAR: "Regular",
+    NEW: "New",
+  }
+} as const;
 
 function fmtDate(iso?: string) {
   if (!iso) return "—";
@@ -19,6 +36,14 @@ function fmtDate(iso?: string) {
   return `${d}.${m}.${y}`;
 }
 
+function telHref(phone: string) {
+  // Keep leading +, strip everything else except digits.
+  const p = phone.trim();
+  const plus = p.startsWith("+") ? "+" : "";
+  const digits = p.replace(/[^\d]/g, "");
+  return `${plus}${digits}`;
+}
+
 type QuickForm = {
   name: string;
   phone: string;
@@ -27,6 +52,7 @@ type QuickForm = {
 };
 
 export const ClientsPage: FC = () => {
+  const { t, lang } = useI18n();
   const [query, setQuery] = useState("");
   const [loyalty, setLoyalty] = useState<Loyalty>("all");
   const [clients, setClients] = useState<ClientRecord[]>(() => loadClients());
@@ -48,16 +74,16 @@ export const ClientsPage: FC = () => {
 
       const matchesLoyalty =
         loyalty === "all" ||
-        (loyalty === "vip" && c.loyalty === "VIP") ||
-        (loyalty === "regular" && c.loyalty === "Обычный") ||
-        (loyalty === "new" && c.loyalty === "Новый");
+        (loyalty === "vip" && c.loyalty === LOYALTY_VALUES.ru.VIP) ||
+        (loyalty === "regular" && c.loyalty === LOYALTY_VALUES.ru.REGULAR) ||
+        (loyalty === "new" && c.loyalty === LOYALTY_VALUES.ru.NEW);
 
       return matchesQuery && matchesLoyalty;
     });
   }, [clients, loyalty, query]);
 
   const del = (id: string) => {
-    if (!window.confirm("Удалить клиента?")) return;
+    if (!window.confirm(t("clients.confirmDelete"))) return;
     removeClient(id);
     setClients(loadClients());
   };
@@ -91,7 +117,7 @@ export const ClientsPage: FC = () => {
 
     const name = quick.name.trim();
     if (name.length < 2) {
-      setQuickErr("Введите имя клиента (минимум 2 символа).");
+      setQuickErr(t("clients.quick.err.nameTooShort"));
       return;
     }
 
@@ -102,45 +128,45 @@ export const ClientsPage: FC = () => {
         phone: quick.phone.trim() || undefined,
         email: quick.email.trim() || undefined,
         notes: quick.notes.trim() || undefined,
-        loyalty: "Не задан",
+        loyalty: LOYALTY_VALUES[lang].UNSET,
       });
       setClients(loadClients());
       setQuickOpen(false);
     } catch {
-      setQuickErr("Не удалось создать клиента. Попробуйте еще раз.");
+      setQuickErr(t("clients.quick.err.createFailed"));
       setQuickSaving(false);
     }
   };
 
   return (
     <div className="dash-shell clients-shell">
-      <aside className="dash-sidebar" aria-label="Навигация">
+      <aside className="dash-sidebar" aria-label={t("a11y.navigation")}>
         <div className="dash-brand" title="Veloria">
           <img src={iconUrl} className="dash-brand-icon" alt="Veloria" />
         </div>
 
         <nav className="dash-nav">
-          <a className="dash-nav-item" href="/dashboard" title="Главная">
+          <a className="dash-nav-item" href="/dashboard" title={t("nav.home")}>
             <span className="dash-nav-icon">
               <i className="ri-home-5-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/calendar" title="Календарь">
+          <a className="dash-nav-item" href="/calendar" title={t("nav.calendar")}>
             <span className="dash-nav-icon">
               <i className="ri-calendar-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item is-active" href="/clients" aria-current="page" title="Клиенты">
+          <a className="dash-nav-item is-active" href="/clients" aria-current="page" title={t("nav.clients")}>
             <span className="dash-nav-icon">
               <i className="ri-user-3-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/services" title="Услуги">
+          <a className="dash-nav-item" href="/services" title={t("nav.services")}>
             <span className="dash-nav-icon">
               <i className="ri-service-line" aria-hidden="true" />
             </span>
           </a>
-          <a className="dash-nav-item" href="/settings" title="Настройки">
+          <a className="dash-nav-item" href="/settings" title={t("nav.settings")}>
             <span className="dash-nav-icon">
               <i className="ri-settings-3-line" aria-hidden="true" />
             </span>
@@ -149,7 +175,7 @@ export const ClientsPage: FC = () => {
       </aside>
 
       <main className="dash-main">
-        <header className="dash-topbar" aria-label="Панель">
+        <header className="dash-topbar" aria-label={t("a11y.topbar")}>
           <div className="dash-topbar-left" />
           <div className="dash-topbar-right">
             <div className="dash-topbar-actions">
@@ -162,13 +188,13 @@ export const ClientsPage: FC = () => {
         <section className="dash-content">
           <div className="clients-head">
             <div>
-              <h1 className="clients-title">Клиенты</h1>
-              <div className="clients-sub">Ведите базу клиентов, отслеживайте визиты и отправляйте напоминания.</div>
+              <h1 className="clients-title">{t("clients.title")}</h1>
+              <div className="clients-sub">{t("clients.subtitle")}</div>
             </div>
 
             <div className="clients-actions">
               <button type="button" className="clients-btn clients-btn--outline" onClick={openQuick}>
-                <i className="ri-flashlight-line" aria-hidden="true" /> Быстрое Создание
+                <i className="ri-flashlight-line" aria-hidden="true" /> {t("clients.quickCreate")}
               </button>
               <button
                 type="button"
@@ -177,7 +203,7 @@ export const ClientsPage: FC = () => {
                   window.location.href = "/clients/new";
                 }}
               >
-                <i className="ri-user-add-line" aria-hidden="true" /> Добавить Клиента
+                <i className="ri-user-add-line" aria-hidden="true" /> {t("clients.addClient")}
               </button>
             </div>
           </div>
@@ -186,40 +212,40 @@ export const ClientsPage: FC = () => {
             <div className="clients-toolbar">
               <div className="clients-left">
                 <div className="clients-block-title">
-                  Мои клиенты <span className="clients-count">{filtered.length}</span>
+                  {t("clients.myClients")} <span className="clients-count">{filtered.length}</span>
                 </div>
               </div>
 
               <div className="clients-filters">
                 <label className="clients-field">
-                  <div className="clients-field-label">Поиск</div>
+                  <div className="clients-field-label">{t("common.search")}</div>
                   <div className="clients-input-wrap">
                     <i className="ri-search-line" aria-hidden="true" />
                     <input
                       className="clients-input"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Имя, телефон или email"
+                      placeholder={t("clients.search.placeholder")}
                     />
                   </div>
                 </label>
 
                 <label className="clients-field">
-                  <div className="clients-field-label">Лояльность</div>
+                  <div className="clients-field-label">{t("clients.loyalty")}</div>
                   <div className="clients-select-wrap">
                     <select className="clients-select" value={loyalty} onChange={(e) => setLoyalty(e.target.value as Loyalty)}>
-                      <option value="all">Все уровни</option>
-                      <option value="vip">VIP</option>
-                      <option value="regular">Обычный</option>
-                      <option value="new">Новый</option>
+                      <option value="all">{t("clients.loyalty.all")}</option>
+                      <option value="vip">{t("clients.loyalty.vip")}</option>
+                      <option value="regular">{t("clients.loyalty.regular")}</option>
+                      <option value="new">{t("clients.loyalty.new")}</option>
                     </select>
                     <i className="ri-arrow-down-s-line" aria-hidden="true" />
                   </div>
                 </label>
 
-                <div className="clients-pills" aria-label="Быстрые фильтры">
+                <div className="clients-pills" aria-label={t("clients.pills.label")}>
                   <button type="button" className="clients-pill is-active" onClick={() => setLoyalty("all")}>
-                    Имена
+                    {t("clients.pills.names")}
                   </button>
                   <button
                     type="button"
@@ -229,7 +255,7 @@ export const ClientsPage: FC = () => {
                       setLoyalty("all");
                     }}
                   >
-                    Сброс
+                    {t("clients.pills.reset")}
                   </button>
                 </div>
               </div>
@@ -258,49 +284,85 @@ export const ClientsPage: FC = () => {
 
                     <div className="clients-small-grid">
                       <div className="clients-small">
-                        <div className="clients-small-label">Последний визит</div>
+                        <div className="clients-small-label">{t("clients.lastVisit")}</div>
                         <div className="clients-small-value">{fmtDate(c.lastVisit)}</div>
                       </div>
                       <div className="clients-small">
-                        <div className="clients-small-label">Лояльность</div>
-                        <div className="clients-badge">{c.loyalty ?? "Не задан"}</div>
+                        <div className="clients-small-label">{t("clients.loyalty")}</div>
+                        <div className="clients-badge">
+                          {c.loyalty === LOYALTY_VALUES.ru.UNSET ? t("clients.loyalty.unspecified") : 
+                           c.loyalty === LOYALTY_VALUES.ru.VIP ? t("clients.loyalty.vip") :
+                           c.loyalty === LOYALTY_VALUES.ru.REGULAR ? t("clients.loyalty.regular") :
+                           c.loyalty === LOYALTY_VALUES.ru.NEW ? t("clients.loyalty.new") :
+                           c.loyalty ?? t("common.notSpecified")}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="clients-item-actions" aria-label="Действия">
-                    <button type="button" className="clients-ico" title="Открыть" onClick={() => window.alert("Открыть клиента")}>
+                  <div className="clients-item-actions" aria-label={t("common.actions")}>
+                    <button
+                      type="button"
+                      className="clients-ico"
+                      title={t("clients.action.open")}
+                      onClick={() => {
+                        window.location.href = `/clients/${encodeURIComponent(c.id)}`;
+                      }}
+                    >
                       <i className="ri-eye-line" aria-hidden="true" />
                     </button>
-                    <button type="button" className="clients-ico" title="Напоминание" onClick={() => window.alert("Напоминание")}>
+                    <button
+                      type="button"
+                      className="clients-ico"
+                      title={t("clients.action.booking")}
+                      onClick={() => {
+                        window.location.href = `/calendar/new?clientId=${encodeURIComponent(c.id)}`;
+                      }}
+                    >
                       <i className="ri-notification-2-line" aria-hidden="true" />
                     </button>
-                    <button type="button" className="clients-ico" title="Звонок" onClick={() => window.alert("Звонок")}>
+                    <button
+                      type="button"
+                      className="clients-ico"
+                      title={c.phone ? t("clients.action.call") : t("clients.action.noPhone")}
+                      disabled={!c.phone}
+                      onClick={() => {
+                        if (!c.phone) return;
+                        window.location.href = `tel:${telHref(c.phone)}`;
+                      }}
+                    >
                       <i className="ri-phone-fill" aria-hidden="true" />
                     </button>
-                    <button type="button" className="clients-ico" title="Редактировать" onClick={() => window.alert("Редактировать")}>
+                    <button
+                      type="button"
+                      className="clients-ico"
+                      title={t("common.edit")}
+                      onClick={() => {
+                        window.location.href = `/clients/${encodeURIComponent(c.id)}/edit`;
+                      }}
+                    >
                       <i className="ri-pencil-line" aria-hidden="true" />
                     </button>
-                    <button type="button" className="clients-ico is-danger" title="Удалить" onClick={() => del(c.id)}>
+                    <button type="button" className="clients-ico is-danger" title={t("common.delete")} onClick={() => del(c.id)}>
                       <i className="ri-delete-bin-6-line" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
               ))}
 
-              {!filtered.length && <div className="dash-note">Нет клиентов по текущим фильтрам.</div>}
+              {!filtered.length && <div className="dash-note">{t("clients.emptyFiltered")}</div>}
             </div>
 
             <div className="clients-footer">
               <div className="clients-footer-text">
-                Показано {filtered.length} из {clients.length}
+                {t("clients.shownOf", { shown: filtered.length, total: clients.length })}
               </div>
               <div className="clients-pager">
-                <button type="button" className="clients-page-btn" disabled title="Назад">
+                <button type="button" className="clients-page-btn" disabled title={t("clients.pager.prev")}>
                   <i className="ri-arrow-left-s-line" aria-hidden="true" />
                 </button>
                 <div className="clients-page-num">1</div>
-                <button type="button" className="clients-page-btn" disabled title="Вперед">
+                <button type="button" className="clients-page-btn" disabled title={t("clients.pager.next")}>
                   <i className="ri-arrow-right-s-line" aria-hidden="true" />
                 </button>
               </div>
@@ -316,7 +378,7 @@ export const ClientsPage: FC = () => {
             className="qc-overlay"
             role="dialog"
             aria-modal="true"
-            aria-label="Быстрое создание клиента"
+            aria-label={t("clients.quick.aria")}
             onMouseDown={(e) => {
               if (e.target === overlayRef.current) closeQuick();
             }}
@@ -324,12 +386,10 @@ export const ClientsPage: FC = () => {
             <div className="qc-modal">
               <div className="qc-top">
                 <div>
-                  <div className="qc-title">Быстрое создание клиента</div>
-                  <div className="qc-sub">
-                    Заполните основные данные, остальное сможете добавить позже в карточке клиента.
-                  </div>
+                  <div className="qc-title">{t("clients.quick.title")}</div>
+                  <div className="qc-sub">{t("clients.quick.subtitle")}</div>
                 </div>
-                <button type="button" className="qc-x" onClick={closeQuick} aria-label="Закрыть">
+                <button type="button" className="qc-x" onClick={closeQuick} aria-label={t("common.close")}>
                   <i className="ri-close-line" aria-hidden="true" />
                 </button>
               </div>
@@ -343,63 +403,63 @@ export const ClientsPage: FC = () => {
               <form onSubmit={submitQuick}>
                 <div className="qc-grid">
                   <label className="qc-field">
-                    <div className="qc-label">Имя клиента</div>
+                    <div className="qc-label">{t("clients.quick.name")}</div>
                     <input
                       className="qc-input"
                       value={quick.name}
                       onChange={(e) => setQuick((p) => ({ ...p, name: e.target.value }))}
-                      placeholder="Имя"
+                      placeholder={t("clients.quick.namePlaceholder")}
                       autoFocus
                       autoComplete="name"
                     />
                   </label>
 
                   <label className="qc-field">
-                    <div className="qc-label">Телефон</div>
+                    <div className="qc-label">{t("clients.quick.phone")}</div>
                     <input
                       className="qc-input"
                       value={quick.phone}
                       onChange={(e) => setQuick((p) => ({ ...p, phone: e.target.value }))}
-                      placeholder="Телефон"
+                      placeholder={t("clients.quick.phonePlaceholder")}
                       autoComplete="tel"
                       inputMode="tel"
                     />
                   </label>
 
                   <label className="qc-field qc-field--span">
-                    <div className="qc-label">Email</div>
+                    <div className="qc-label">{t("clients.quick.email")}</div>
                     <input
                       className="qc-input"
                       value={quick.email}
                       onChange={(e) => setQuick((p) => ({ ...p, email: e.target.value }))}
-                      placeholder="Email"
+                      placeholder={t("clients.quick.emailPlaceholder")}
                       autoComplete="email"
                       inputMode="email"
                     />
                   </label>
 
                   <label className="qc-field qc-field--span">
-                    <div className="qc-label">Заметки</div>
+                    <div className="qc-label">{t("clients.quick.notes")}</div>
                     <textarea
                       className="qc-area"
                       rows={4}
                       value={quick.notes}
                       onChange={(e) => setQuick((p) => ({ ...p, notes: e.target.value }))}
-                      placeholder="Заметки"
+                      placeholder={t("clients.quick.notesPlaceholder")}
                     />
                   </label>
                 </div>
 
                 <div className="qc-actions">
                   <button type="button" className="qc-btn qc-btn--muted" onClick={closeQuick} disabled={quickSaving}>
-                    Отмена
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     className="qc-btn qc-btn--primary"
                     disabled={quickSaving || quick.name.trim().length < 2}
                   >
-                    {quickSaving ? "Создание..." : "Создать Клиента"}
+                    {quickSaving ? t("clients.quick.creating") : t("clients.quick.create")}
                   </button>
                 </div>
               </form>
@@ -410,4 +470,3 @@ export const ClientsPage: FC = () => {
     </div>
   );
 };
-
